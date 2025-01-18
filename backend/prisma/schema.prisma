@@ -21,12 +21,18 @@ model User {
   profile_picture String?
   bio             String?
   createdAt       DateTime    @default(now())
-  role            String //user,mod,admin
+  role            UserRole    @default(USER)
   reviews         Review[]
   ratings         Rating[]
   following       Follow[]   @relation("Follower")
   followers       Follow[]   @relation("Followers")
   genreVotes      GenreVote[]
+}
+
+enum UserRole {
+  USER
+  MOD
+  ADMIN
 }
 
 model Follow {
@@ -59,7 +65,7 @@ model Game {
 
 model Genre {
   id        Int          @id @default(autoincrement())
-  name      String
+  name      String @unique
   games     GameGenre[]
   votes     GenreVote[]
 }
@@ -102,12 +108,15 @@ model Rating {
 
   user      User   @relation(fields: [userID], references: [id])
   game      Game   @relation(fields: [gameID], references: [id])
+  review    Review?  // One-to-one relation to Review 
+  @@unique([userID, gameID])
 }
 
 model Review {
   id         Int      @id @default(autoincrement())
   userID     Int
   gameID     Int
+  ratingID   Int @unique
   title      String
   content    String
   reviewScore Int
@@ -116,5 +125,7 @@ model Review {
 
   user       User    @relation(fields: [userID], references: [id])
   game       Game    @relation(fields: [gameID], references: [id])
+  rating     Rating  @relation(fields: [ratingID], references: [id]) 
+  @@unique([userID, gameID])
 }
 
