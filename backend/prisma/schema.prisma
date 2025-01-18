@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int         @id @default(autoincrement())
+  username        String      @unique
+  email           String      @unique
+  password        String
+  profile_picture String?
+  bio             String?
+  createdAt       DateTime    @default(now())
+  role            String //user,mod,admin
+  reviews         Review[]
+  ratings         Rating[]
+  following       Follow[]   @relation("Follower")
+  followers       Follow[]   @relation("Followers")
+  genreVotes      GenreVote[]
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerID  Int
+  followedID  Int
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("Follower", fields: [followerID], references: [id])
+  followed    User     @relation("Followers", fields: [followedID], references: [id])
+
+  @@unique([followerID, followedID])
+}
+
+model Game {
+  id           Int          @id @default(autoincrement())
+  title        String
+  releaseDate  DateTime
+  coverImage   String
+  developer    String
+  avgRating    Float        @default(0.0)
+  reviewCount  Int          @default(0)
+  ratingCount  Int          @default(0)
+  ratings      Rating[]
+  reviews      Review[]
+  genres       GameGenre[]
+  genreVotes   GenreVote[]
+  approved     Boolean
+}
+
+model Genre {
+  id        Int          @id @default(autoincrement())
+  name      String
+  games     GameGenre[]
+  votes     GenreVote[]
+}
+
+model GameGenre {
+  id           Int     @id @default(autoincrement())
+  gameID       Int
+  genreID      Int
+  upvoteCount  Int     @default(0)
+  downvoteCount Int    @default(0)
+  totalVotes   Int     @default(0)
+
+  game      Game   @relation(fields: [gameID], references: [id])
+  genre     Genre  @relation(fields: [genreID], references: [id])
+
+  @@unique([gameID, genreID])
+}
+
+model GenreVote {
+  id        Int      @id @default(autoincrement())
+  userID    Int
+  gameID    Int
+  genreID   Int
+  voteValue Boolean
+
+  user      User   @relation(fields: [userID], references: [id])
+  game      Game   @relation(fields: [gameID], references: [id])
+  genre     Genre  @relation(fields: [genreID], references: [id])
+
+  @@unique([userID, gameID, genreID])
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userID    Int
+  gameID    Int
+  score     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User   @relation(fields: [userID], references: [id])
+  game      Game   @relation(fields: [gameID], references: [id])
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  userID     Int
+  gameID     Int
+  title      String
+  content    String
+  reviewScore Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User    @relation(fields: [userID], references: [id])
+  game       Game    @relation(fields: [gameID], references: [id])
+}
+
