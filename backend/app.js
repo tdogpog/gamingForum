@@ -8,8 +8,9 @@ const { passportConfig } = require("./util/passportConfig");
 //routers
 const authRouter = require("./routers/authRouter");
 const chartRouter = require("./routers/chartRouter");
-const genresRouter = require("./routers/genresRouter");
+const gamesRouter = require("./routers/gamesRouter");
 const userRouter = require("./routers/userRouter");
+const adminRouter = require("./routers/adminRouter");
 
 //app start
 const app = express();
@@ -23,10 +24,11 @@ app.use(express.json());
 passportConfig(passport);
 
 //routers
-app.use("/auth", authRouter);
-app.use("/charts", chartRouter);
-app.use("/genres", genresRouter);
+app.use("/auth", authRouter); //just for logging in and assigning jwt
+app.use("/charts", chartRouter); //renders charts
+app.use("/games", gamesRouter); //renders a single game, contains genre
 app.use("/user", userRouter);
+app.use("/admin", adminRouter);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
