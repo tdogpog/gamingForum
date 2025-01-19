@@ -1,6 +1,5 @@
 //overarching imports
 const express = require("express");
-const session = require("express-session");
 const cors = require("cors");
 require("dotenv").config({ path: "./.env" });
 //passport
@@ -20,13 +19,10 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-//session
-app.use(
-  session({ secret: "secretKey", resave: false, saveUninitialized: false })
-);
-app.use(passport.session());
+// passport config
 passportConfig(passport);
 
+//routers
 app.use("/auth", authRouter);
 app.use("/charts", chartRouter);
 app.use("/genres", genresRouter);

@@ -6,6 +6,8 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+//local strategy is login ONLY.
+//removed serializing which is associated with sessions
 const passportConfig = async (passport) => {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
@@ -28,28 +30,13 @@ const passportConfig = async (passport) => {
           });
         }
 
+        //success, return user data
         return done(null, user);
       } catch (err) {
         return done(err);
       }
     })
   );
-
-  passport.serializeUser((user, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id },
-      });
-
-      done(null, user);
-    } catch (err) {
-      done(err);
-    }
-  });
 };
 
 module.exports = { passportConfig };
