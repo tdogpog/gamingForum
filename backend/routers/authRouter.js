@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const authRouter = Router();
 
 authRouter.post("/login", (req, res, next) => {
-  // Authenticate with passport-local strategy
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err || !user) {
       return res
@@ -28,7 +27,7 @@ authRouter.post("/login", (req, res, next) => {
 
     return res.json({
       message: "Login successful",
-      token, // Send the JWT
+      token,
       user: { id: user.id, username: user.username, role: user.role },
     });
   })(req, res, next);
