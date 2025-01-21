@@ -10,6 +10,7 @@ const authRouter = require("./routers/authRouter");
 const chartRouter = require("./routers/chartRouter");
 const gamesRouter = require("./routers/gamesRouter");
 const userRouter = require("./routers/userRouter");
+const submitRouter = require("./routers/submitRouter");
 const adminRouter = require("./routers/adminRouter");
 
 //app start
@@ -28,6 +29,7 @@ app.use("/auth", authRouter); //just for logging in and assigning jwt
 app.use("/charts", chartRouter); //renders charts
 app.use("/games", gamesRouter); //renders a single game, contains genre
 app.use("/user", userRouter);
+app.use("/submit", submitRouter);
 app.use("/admin", adminRouter);
 
 const port = process.env.PORT || 3000;
