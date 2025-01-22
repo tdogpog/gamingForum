@@ -11,9 +11,10 @@ userRouter.get("/following", isUser, getUserFollowing);
 //posts
 
 //puts
-userRouter.put("/settings", updateUserSettings);
+userRouter.put("/settings", isUser, updateUserSettings);
 
 //deletes
+userRouter.delete("/settings/delete", isUser, deleteUserAccount);
 
 module.exports = userRouter;
 

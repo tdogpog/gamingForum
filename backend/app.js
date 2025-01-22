@@ -28,9 +28,9 @@ passportConfig(passport);
 app.use("/auth", authRouter); //just for logging in and assigning jwt
 app.use("/charts", chartRouter); //renders charts
 app.use("/games", gamesRouter); //renders a single game, contains genre
-app.use("/user", userRouter);
-app.use("/submit", submitRouter);
-app.use("/admin", adminRouter);
+app.use("/user", userRouter); //user specific info
+app.use("/submit", submitRouter); //submitting or editing a new game
+app.use("/admin", adminRouter); //admin only permissions
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
