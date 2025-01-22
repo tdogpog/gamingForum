@@ -27,6 +27,7 @@ model User {
   following       Follow[]   @relation("Follower")
   followers       Follow[]   @relation("Followers")
   genreVotes      GenreVote[]
+  gameEditSubmissions GameEdit[]
 }
 
 enum UserRole {
@@ -60,7 +61,22 @@ model Game {
   reviews      Review[]
   genres       GameGenre[]
   genreVotes   GenreVote[]
+  gameEditSubmissions GameEdit[]
   approved     Boolean
+}
+
+model GameEdit {
+  id           Int      @id @default(autoincrement())
+  gameID       Int
+  title        String?  // optional fields to allow partial edits
+  releaseDate  DateTime?
+  coverImage   String?
+  developer    String?
+  submittedBy  Int
+  createdAt    DateTime @default(now())
+
+  game         Game     @relation(fields: [gameID], references: [id])
+  user         User     @relation(fields: [submittedBy], references: [id])
 }
 
 model Genre {
