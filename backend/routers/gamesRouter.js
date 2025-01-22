@@ -1,5 +1,4 @@
 const { Router } = require("express");
-const { isUser } = require("../util/isUser");
 
 const gamesRouter = Router();
 //gets
@@ -7,8 +6,10 @@ gamesRouter.get("/:gameID", getGame);
 gamesRouter.get("/genres", getAllGenres);
 gamesRouter.get("/genres/:genreType", getGenre);
 
-//puts
 //posts
+
+//puts
+
 //deletes
 module.exports = gamesRouter;
 
