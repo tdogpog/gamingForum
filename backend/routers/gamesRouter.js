@@ -4,6 +4,9 @@ const {
   getGame,
   getAllGenres,
   getGenreGames,
+  postRating,
+  updateRating,
+  createReview,
 } = require("../controllers/gamesController");
 
 const gamesRouter = Router();
@@ -14,8 +17,11 @@ gamesRouter.get("/genres", getAllGenres);
 gamesRouter.get("/genres/:genreID", getGenreGames);
 
 //posts
+gamesRouter.post("/:gameID/review", postRating);
 
 //puts
+gamesRouter.put("/:gameID/review", updateRating);
+gamesRouter.put("/:gameID/review", createReview);
 
 //deletes
 
