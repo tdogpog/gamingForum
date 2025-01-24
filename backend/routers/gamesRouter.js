@@ -17,10 +17,10 @@ gamesRouter.get("/genres", getAllGenres);
 gamesRouter.get("/genres/:genreID", getGenreGames);
 
 //posts
-gamesRouter.post("/:gameID/review", postRating);
+gamesRouter.post("/:gameID/rating", postRating);
 
 //puts
-gamesRouter.put("/:gameID/review", updateRating);
+gamesRouter.put("/:gameID/rating", updateRating);
 gamesRouter.put("/:gameID/review", createReview);
 
 //deletes
