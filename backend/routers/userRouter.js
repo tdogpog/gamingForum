@@ -3,9 +3,7 @@ const { isUser } = require("../util/isUser");
 
 const {
   getUserProfile,
-  getUserSettings,
-  getUserFollowers,
-  getUserFollowing,
+  createUser,
   updateUserSettings,
   deleteUserAccount,
 } = require("../controllers/userController");
@@ -14,11 +12,9 @@ const userRouter = Router();
 
 //gets
 userRouter.get("/:username", isUser, getUserProfile);
-userRouter.get("/settings", isUser, getUserSettings);
-userRouter.get("/followers", isUser, getUserFollowers);
-userRouter.get("/following", isUser, getUserFollowing);
 
 //posts
+userRouter.get("/", createUser);
 
 //puts
 userRouter.put("/settings", isUser, updateUserSettings);
