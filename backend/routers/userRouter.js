@@ -1,5 +1,15 @@
 const { Router } = require("express");
 const { isUser } = require("../util/isUser");
+
+const {
+  getUserProfile,
+  getUserSettings,
+  getUserFollowers,
+  getUserFollowing,
+  updateUserSettings,
+  deleteUserAccount,
+} = require("../controllers/userController");
+
 const userRouter = Router();
 
 //gets
@@ -17,9 +27,3 @@ userRouter.put("/settings", isUser, updateUserSettings);
 userRouter.delete("/settings/delete", isUser, deleteUserAccount);
 
 module.exports = userRouter;
-
-// website.com / user;
-// website.com / user / userName;
-// website.com / user / settings;
-// website.com / user / followers;
-// website.com / user /  following;

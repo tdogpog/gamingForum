@@ -1,5 +1,7 @@
 const { Router } = require("express");
 
+const { getTopChart } = require("../controllers/chartController");
+
 const chartRouter = Router();
 
 //landing page of sorts, show the top 25 games from the database by
@@ -13,7 +15,5 @@ chartRouter.get("/", getTopChart); //all user viewable posts
 //puts
 
 //deletes
-
-chartRouter.get("/", getTopChart); //all user viewable posts
 
 module.exports = chartRouter;
