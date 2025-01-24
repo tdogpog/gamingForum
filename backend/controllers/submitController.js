@@ -48,23 +48,130 @@ async function getQueue(req, res) {
 //posting a new game with false flag to db
 async function postSubmitForm(req, res) {
   try {
-  } catch (error) {}
+    const { title, releaseDate, coverImage, developer } = req.body;
+
+    if (!title || !releaseDate || !developer || !coverImage) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const post = await prisma.game.create({
+      data: {
+        title,
+        releaseDate,
+        coverImage,
+        developer,
+        approved: false,
+      },
+    });
+    res
+      .status(201)
+      .json({ message: "Game submitted for admin approval", post });
+  } catch (error) {
+    console.error("Error submitting game:", error.message);
+    res.status(500).json({
+      error: "An error occurred while creating game submission request",
+    });
+  }
 }
 
 //editing game info
 async function editGameInfo(req, res) {
   try {
-  } catch (error) {}
+    const userID = req.user.id; //userID fed in by the isUser middleware
+    const gameID = req.params.gameID;
+    const { title, releaseDate, coverImage, developer } = req.body;
+
+    if (!gameID) {
+      return res.status(400).json({ error: "Game ID is required." });
+    }
+
+    const editTicket = await prisma.gameEdit.create({
+      data: {
+        gameID: gameID,
+        title: title || null,
+        releaseDate: releaseDate || null,
+        coverImage: coverImage || null,
+        developer: developer || null,
+        submittedBy: userID,
+      },
+    });
+    res.status(201).json({
+      message: "Edit request submitted for admin approval.",
+      editTicket,
+    });
+  } catch (error) {
+    console.error("Error creating edit ticket:", error.message);
+    res
+      .status(500)
+      .json({ error: "An error occurred while submitting the edit request." });
+  }
 }
 
 async function approveGame(req, res) {
   try {
-  } catch (error) {}
+    const gameID = req.params.gameID;
+
+    const game = await prisma.game.update({ where: gameID, data: req.body });
+  } catch (error) {
+    console.error("Error approving game:", error.message);
+    res
+      .status(500)
+      .json({ error: "An error occurred while approving game for display" });
+  }
 }
 
 async function approveGameEdit(req, res) {
   try {
-  } catch (error) {}
+    const editID = req.params.editID;
+
+    //grab edit ticket
+    const gameEdit = await prisma.gameEdit.findUnique({
+      where: { id: editID },
+    });
+
+    if (!gameEdit) {
+      return res.status(404).json({ error: "Edit request not found" });
+    }
+
+    //find game that corresponds with ticket
+    const game = await prisma.game.findUnique({
+      where: { id: gameEdit.gameID },
+    });
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    //fill out object with ticket updates
+    const updatedGame = {
+      title: gameEdit.title || game.title,
+      releaseDate: gameEdit.releaseDate || game.releaseDate,
+      coverImage: gameEdit.coverImage || game.coverImage,
+      developer: gameEdit.developer || game.developer,
+      approved: true,
+    };
+
+    //update existing game with suggested updates
+    const result = await prisma.game.update({
+      where: { id: game.id },
+      data: updatedGame,
+    });
+
+    //delete the ticket from db
+    await prisma.gameEdit.delete({
+      where: { id: gameEdit.id },
+    });
+
+    res.status(200).json({
+      message: "Game edit approved and applied successfully",
+      updatedGame: result,
+    });
+  } catch (error) {
+    console.error("Error editing game info:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while approving the game edit" });
+  }
 }
 
 async function deleteTicket(req, res) {
@@ -105,17 +212,3 @@ module.exports = {
   approveGameEdit,
   deleteTicket,
 };
-
-//gets
-submitRouter.get("/queue", isAdmin, getQueue); //fetches all waiting edits and and new game submissions
-
-//posts
-submitRouter.post("/", isUser, postSubmitForm); //posting a new game ticket to the DB with false flag
-submitRouter.post("/game/:gameID", isUser, editGameInfo);
-
-//puts
-submitRouter.post("/queue/:gameID", isAdmin, approveGame); //approves a game submission
-submitRouter.post("/queue/:editID", isAdmin, approveGameEdit); //approves a game edit
-
-//deletes
-submitRouter.get("/queue/:ticketID", isAdmin, deleteTicket);
