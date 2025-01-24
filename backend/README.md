@@ -66,6 +66,7 @@ sending edit request to the database
 
 submitRouter.post("/queue/:gameID", isAdmin, approveGame);
 approves a game submission
+
 submitRouter.post("/queue/:editID", isAdmin, approveGameEdit);
 approves a game edit
 
