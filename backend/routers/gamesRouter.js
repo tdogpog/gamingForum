@@ -1,19 +1,22 @@
 const { Router } = require("express");
 
+const {
+  getGame,
+  getAllGenres,
+  getGenreGames,
+} = require("../controllers/gamesController");
+
 const gamesRouter = Router();
+
 //gets
 gamesRouter.get("/:gameID", getGame);
 gamesRouter.get("/genres", getAllGenres);
-gamesRouter.get("/genres/:genreType", getGenre);
+gamesRouter.get("/genres/:genreID", getGenreGames);
 
 //posts
 
 //puts
 
 //deletes
-module.exports = gamesRouter;
 
-// website.com / games;
-// website.com / games / gameID;
-// website.com / games / genres;
-// website.com / games / genres / genreType;
+module.exports = gamesRouter;

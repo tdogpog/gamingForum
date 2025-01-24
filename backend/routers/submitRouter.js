@@ -2,6 +2,12 @@ const { Router } = require("express");
 const { isUser } = require("../util/isUser");
 const { isAdmin } = require("../util/isAdmin");
 
+const {
+  getQueue,
+  postSubmitForm,
+  editGameInfo,
+} = require("../controllers/submitController");
+
 const submitRouter = Router();
 
 //gets
