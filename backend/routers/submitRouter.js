@@ -6,6 +6,9 @@ const {
   getQueue,
   postSubmitForm,
   editGameInfo,
+  approveGame,
+  approveGameEdit,
+  deleteTicket,
 } = require("../controllers/submitController");
 
 const submitRouter = Router();
@@ -14,11 +17,14 @@ const submitRouter = Router();
 submitRouter.get("/queue", isAdmin, getQueue); //fetches all waiting edits and and new game submissions
 
 //posts
-submitRouter.post("/", isUser, postSubmitForm);
+submitRouter.post("/", isUser, postSubmitForm); //posting a new game ticket to the DB with false flag
+submitRouter.post("/game/:gameID", isUser, editGameInfo);
 
 //puts
-submitRouter.put("/game/:gameID", isUser, editGameInfo);
+submitRouter.post("/queue/:gameID", isAdmin, approveGame); //approves a game submission
+submitRouter.post("/queue/:editID", isAdmin, approveGameEdit); //approves a game edit
 
 //deletes
+submitRouter.get("/queue/:ticketID", isAdmin, deleteTicket);
 
 module.exports = submitRouter;
