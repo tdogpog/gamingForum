@@ -200,6 +200,118 @@ async function createReview(req, res) {
   }
 }
 
+async function updateReview(req, res) {
+  const userID = req.user.id;
+  const gameID = req.params.gameID;
+  const { title, content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ message: "Title and content are required." });
+  }
+
+  try {
+    const rating = await prisma.rating.findUnique({
+      where: { userID_gameID: { userID, gameID } },
+    });
+
+    if (!rating) {
+      return res
+        .status(404)
+        .json({ message: "No rating found for this game." });
+    }
+
+    const updatedReview = await prisma.review.update({
+      where: { ratingID: rating.id },
+      data: { title, content },
+    });
+
+    res.status(200).json(updatedReview);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update review." });
+  }
+}
+
+async function getUserRating(req, res) {
+  const userID = req.user.id;
+  const gameID = req.params.gameID;
+
+  try {
+    //find the user's existing rating for the game
+    const userRating = await prisma.rating.findUnique({
+      where: { userID_gameID: { userID, gameID } },
+    });
+
+    if (!userRating) {
+      return res
+        .status(404)
+        .json({ message: "No rating found for this game." });
+    }
+
+    res.status(200).json(userRating);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch the rating." });
+  }
+}
+
+async function getUserReview(req, res) {
+  const userID = req.user.id;
+  const gameID = req.params.gameID;
+
+  try {
+    //find the user's review for the specified game
+    const userReview = await prisma.review.findUnique({
+      where: {
+        userID_gameID: { userID, gameID },
+      },
+    });
+
+    if (!userReview) {
+      return res
+        .status(404)
+        .json({ message: "No review found for this game." });
+    }
+
+    res.status(200).json(userReview);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch the review." });
+  }
+}
+
+async function deleteReview(req, res) {
+  const userID = req.user.id;
+  const gameID = req.params.gameID;
+
+  try {
+    //check if the review exists
+    const existingReview = await prisma.review.findUnique({
+      where: {
+        userID_gameID: { userID, gameID },
+      },
+    });
+
+    if (!existingReview) {
+      return res
+        .status(404)
+        .json({ message: "Review not found for this game." });
+    }
+
+    //delete the review
+    await prisma.review.delete({
+      where: {
+        id: existingReview.id,
+      },
+    });
+
+    res.status(200).json({ message: "Review deleted successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete the review." });
+  }
+}
+
 module.exports = {
   getGame,
   getAllGenres,
@@ -207,4 +319,8 @@ module.exports = {
   postRating,
   updateRating,
   createReview,
+  updateReview,
+  getUserRating,
+  getUserReview,
+  deleteReview,
 };

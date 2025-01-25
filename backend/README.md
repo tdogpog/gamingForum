@@ -32,6 +32,12 @@ returns a list of all genres
 gamesRouter.get("/genres/:genreID", getGenreGames);
 returns all games related to that genre
 
+gamesRouter.get("/:gameID/rating", getUserRating);
+returns user rating so they see they've rated it already
+
+gamesRouter.get("/:gameID/rating", getUserReview);
+returns user review so they can see their review
+
 ## POSTS
 
 gamesRouter.post("/:gameID/rating", postRating);
@@ -44,6 +50,14 @@ allows the user to update a rating
 
 gamesRouter.put("/:gameID/review", createReview);
 allows the user to post a review (MUST HAVE A RATING FIRST)
+
+gamesRouter.put("/:gameID/review/edit", updateReview);
+allows user to update their review
+
+## DELETES
+
+gamesRouter.put("/:gameID/review/delete", deleteReview);
+allows user to delete their review, keeps their rating
 
 ## submitRouter.js
 
