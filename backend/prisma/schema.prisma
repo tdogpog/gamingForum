@@ -80,7 +80,7 @@ model GameEdit {
 
 model Genre {
   id        Int          @id @default(autoincrement())
-  name      String @unique
+  genreName      String @unique
   games     GameGenre[]
   votes     GenreVote[]
 }

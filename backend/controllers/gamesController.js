@@ -2,6 +2,37 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+/////////////////////////HELPER FUNCS FOR AVG RATING, RATING COUNT, REVIEW COUNT
+
+async function updateGameRatingStats(gameID) {
+  const ratings = await prisma.rating.findMany({
+    where: { gameID },
+    select: { score: true },
+  });
+
+  const ratingCount = ratings.length;
+  const avgRating =
+    ratings.reduce((sum, rating) => sum + rating.score, 0) / ratingCount || 0;
+
+  await prisma.game.update({
+    where: { id: gameID },
+    data: { ratingCount, avgRating },
+  });
+}
+
+async function updateGameReviewCount(gameID) {
+  const reviewCount = await prisma.review.count({
+    where: { gameID },
+  });
+
+  await prisma.game.update({
+    where: { id: gameID },
+    data: { reviewCount },
+  });
+}
+
+///////////////////////////////MAIN FUNCS
+
 async function getGame(req, res) {
   try {
     const gameID = req.params.gameID;
@@ -22,7 +53,24 @@ async function getGame(req, res) {
         ratingCount: true,
         ratings: true,
         reviews: true,
-        genres: true,
+        genres: {
+          orderBy: {
+            gameGenres: {
+              upvoteCount: "desc", //sort genres by their upvoteCount in desc
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            gameGenres: {
+              select: {
+                upvoteCount: true,
+                downvoteCount: true,
+                totalVotes: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -123,6 +171,8 @@ async function postRating(req, res) {
       },
     });
 
+    await updateGameRatingStats(gameID);
+
     res.status(201).json(newRating);
   } catch (error) {
     console.error(error);
@@ -132,7 +182,7 @@ async function postRating(req, res) {
 
 async function updateRating(req, res) {
   const userID = req.user.id;
-  const { gameID } = req.params.gameID;
+  const gameID = req.params.gameID;
   const { score } = req.body;
 
   try {
@@ -153,6 +203,8 @@ async function updateRating(req, res) {
       data: { score },
     });
 
+    await updateGameRatingStats(gameID);
+
     res.status(200).json(updatedRating);
   } catch (error) {
     console.error(error);
@@ -172,11 +224,27 @@ async function createReview(req, res) {
   }
 
   try {
-    const existingReview = await prisma.review.findUnique({
-      where: { ratingID: existingRating.id },
+    const ratingWithReview = await prisma.rating.findUnique({
+      where: {
+        userID_gameID: {
+          userID,
+          gameID,
+        },
+      },
+      include: {
+        review: true, //review if it exists
+      },
     });
 
-    if (existingReview) {
+    //force a rating first
+    if (!ratingWithReview) {
+      return res.status(400).json({
+        message: "You must first rate the game before submitting a review.",
+      });
+    }
+
+    //stop a double submit
+    if (ratingWithReview.review) {
       return res.status(400).json({
         message: "You have already submitted a review for this game.",
       });
@@ -187,11 +255,13 @@ async function createReview(req, res) {
       data: {
         userID,
         gameID: gameID,
-        ratingID: existingRating.id,
+        ratingID: ratingWithReview.id,
         title,
         content,
       },
     });
+
+    await updateGameReviewCount(gameID);
 
     res.status(201).json(newReview);
   } catch (error) {
@@ -243,9 +313,7 @@ async function getUserRating(req, res) {
     });
 
     if (!userRating) {
-      return res
-        .status(404)
-        .json({ message: "No rating found for this game." });
+      return res.json({ rating: null });
     }
 
     res.status(200).json(userRating);
@@ -268,9 +336,7 @@ async function getUserReview(req, res) {
     });
 
     if (!userReview) {
-      return res
-        .status(404)
-        .json({ message: "No review found for this game." });
+      return res.json({ review: null });
     }
 
     res.status(200).json(userReview);
@@ -305,10 +371,170 @@ async function deleteReview(req, res) {
       },
     });
 
+    await updateGameReviewCount(gameID);
+
     res.status(200).json({ message: "Review deleted successfully." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to delete the review." });
+  }
+}
+
+async function postGenreTag(req, res) {
+  const gameID = req.params.gameID;
+  const genreName = req.body;
+  const userID = req.user.id;
+
+  try {
+    // failsafe, make sure the genre exists
+    const genre = await prisma.genre.findUnique({
+      where: { genreName: genreName },
+    });
+
+    if (!genre) {
+      return res
+        .status(404)
+        .json({ message: "Selected genre does not exist." });
+    }
+
+    const genreID = genre.id;
+
+    // failsafe, make sure the genre isnt picked yet
+    const existingTag = await prisma.gameGenre.findUnique({
+      where: {
+        gameID_genreID: { gameID, genreID },
+      },
+    });
+
+    if (existingTag) {
+      return res
+        .status(400)
+        .json({ message: "This genre has already been tagged for this game." });
+    }
+
+    //add the genre tag to the game
+    await prisma.gameGenre.create({
+      data: {
+        gameID: gameID,
+        genreID,
+        upvoteCount: 1, //count this user's suggestion as an upvote
+        totalVotes: 1,
+      },
+    });
+
+    //user's vote for this genre suggestion tallied on their personal sheet
+    await prisma.genreVote.create({
+      data: {
+        userID,
+        gameID: gameID,
+        genreID,
+        voteValue: true,
+      },
+    });
+
+    return res.status(201).json({ message: "Genre tag added successfully." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to add genre tag." });
+  }
+}
+
+async function handleGenreVote(req, res) {
+  const { gameID } = req.params;
+  const { genreName, voteValue } = req.body; // true (upvote) or false (downvote)
+  const userID = req.user.id;
+
+  try {
+    //get the genreID since i'm expecting to work this sectinon just by names
+    const genre = await prisma.genre.findUnique({
+      where: { name: genreName },
+    });
+
+    if (!genre) {
+      return res.status(404).json({ message: "Genre not found." });
+    }
+
+    const genreID = genre.id;
+
+    //check if the user has already voted for this genre
+    const existingVote = await prisma.genreVote.findUnique({
+      where: {
+        userID_gameID_genreID: {
+          userID,
+          gameID: gameID,
+          genreID,
+        },
+      },
+    });
+
+    //update the existing vote
+    if (existingVote) {
+      const previousVoteValue = existingVote.voteValue;
+
+      //adjust user vote in personal data
+      await prisma.gameGenre.update({
+        where: {
+          gameID_genreID: {
+            gameID: gameID,
+            genreID,
+          },
+        },
+        data: {
+          upvoteCount: {
+            increment:
+              voteValue === true ? 1 : previousVoteValue === true ? -1 : 0,
+          },
+          downvoteCount: {
+            increment:
+              voteValue === false ? 1 : previousVoteValue === false ? -1 : 0,
+          },
+        },
+      });
+
+      //update the user's vote record
+      await prisma.genreVote.update({
+        where: {
+          userID_gameID_genreID: {
+            userID,
+            gameID: gameID,
+            genreID,
+          },
+        },
+        data: { voteValue },
+      });
+
+      return res.status(200).json({ message: "Vote updated successfully." });
+    } else {
+      //create a new vote
+      await prisma.genreVote.create({
+        data: {
+          userID,
+          gameID: gameID,
+          genreID,
+          voteValue,
+        },
+      });
+
+      //adjust user vote in personal data
+      await prisma.gameGenre.update({
+        where: {
+          gameID_genreID: {
+            gameID: gameID,
+            genreID,
+          },
+        },
+        data: {
+          upvoteCount: { increment: voteValue ? 1 : 0 },
+          downvoteCount: { increment: voteValue ? 0 : 1 },
+          totalVotes: { increment: 1 },
+        },
+      });
+
+      return res.status(201).json({ message: "Vote added successfully." });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to handle vote." });
   }
 }
 
@@ -323,4 +549,6 @@ module.exports = {
   getUserRating,
   getUserReview,
   deleteReview,
+  postGenreTag,
+  handleGenreVote,
 };

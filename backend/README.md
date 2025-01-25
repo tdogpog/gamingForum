@@ -24,7 +24,7 @@ returns a weighted average using bayesian formula for a top 25 chart.
 ## GETS
 
 gamesRouter.get("/:gameID", getGame);
-returns a specific game
+returns a specified Game model, containing all attributes
 
 gamesRouter.get("/genres", getAllGenres);
 returns a list of all genres
