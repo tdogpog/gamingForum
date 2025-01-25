@@ -51,8 +51,35 @@ async function getGame(req, res) {
         avgRating: true,
         reviewCount: true,
         ratingCount: true,
-        ratings: true,
-        reviews: true,
+        ratings: {
+          select: {
+            score: true,
+            createdAt: true,
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
+        reviews: {
+          select: {
+            userID: true,
+            title: true,
+            content: true,
+            createdAt: true,
+            rating: {
+              select: {
+                score: true, //rating score from the associated rating model
+              },
+            },
+            user: {
+              select: {
+                username: true, //username from the user model
+              },
+            },
+          },
+        },
         genres: {
           orderBy: {
             gameGenres: {

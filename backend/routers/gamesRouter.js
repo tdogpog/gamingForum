@@ -40,5 +40,3 @@ gamesRouter.put("/:gameID/genrevote", isUser, handleGenreVote); //user can chang
 gamesRouter.delete("/:gameID/review/delete", isUser, deleteReview); // user can delete review
 
 module.exports = gamesRouter;
-
-//need a fetch for all genretagged games
