@@ -43,6 +43,12 @@ returns user review so they can see their review
 gamesRouter.post("/:gameID/rating", postRating);
 allows the user to post a rating
 
+gamesRouter.post("/:gameID/genretag", isUser, postGenreTag);
+user can suggest a genre for a game
+
+gamesRouter.post("/:gameID/genrevote", isUser, handleGenreVote);
+user can vote yes or no on a genre tag
+
 ## PUTS
 
 gamesRouter.put("/:gameID/rating", updateRating);
@@ -53,6 +59,9 @@ allows the user to post a review (MUST HAVE A RATING FIRST)
 
 gamesRouter.put("/:gameID/review/edit", updateReview);
 allows user to update their review
+
+gamesRouter.put("/:gameID/genrevote", isUser, handleGenreVote);
+user can change vote on genre tag
 
 ## DELETES
 
