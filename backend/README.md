@@ -1,6 +1,6 @@
-API documentation:
+## API documentation:
 
-fully stateless, passport local strategy with a jwt assigned on login
+## fully stateless, passport local strategy with a jwt assigned on login
 
 ## authRouter.js
 
