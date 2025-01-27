@@ -90,6 +90,25 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: "/user",
+    element: (
+      <Layout>
+        <UserProfile backend={backend} />
+      </Layout>
+    ),
+    //makes it /user/settings
+    children: [
+      {
+        path: "settings",
+        element: (
+          <Layout>
+            <Settings backend={backend} />
+          </Layout>
+        ),
+      },
+    ],
+  },
 ]);
 
 //context wrapped
