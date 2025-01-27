@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import "./index.css";
 import Layout from "./components/Layout";
+import { AuthProvider } from "./authContext";
 
 const backend = "http://localhost:3000/";
 
@@ -15,6 +16,15 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Home backend={backend} />
+      </Layout>
+    ),
+  },
+  //page for user log in that is accessed from the Layout
+  {
+    path: "/auth",
+    element: (
+      <Layout>
+        <Login backend={backend} />
       </Layout>
     ),
   },
@@ -81,8 +91,15 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+//context wrapped
+//you can access logged in
+//user id, username,user role
+//from the context at any point from the decoded localstorage(token) jwt
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>
 );

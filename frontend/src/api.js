@@ -1,4 +1,4 @@
-//user version of the fetch
+//RELOOK AT THIS FETCH... THIS IS FROM THE BLOG
 export const authRequest = async (url, method = "GET", body = null) => {
   const options = {
     method,
