@@ -4,6 +4,8 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import "./index.css";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./authContext";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
 
 const backend = "http://localhost:3000/";
 
@@ -30,85 +32,85 @@ const router = createBrowserRouter([
   },
   //users will first LIKELY go here
   //they will see the top games of the website
-  {
-    path: "/charts",
-    element: (
-      <Layout>
-        <Chart backend={backend} />
-      </Layout>
-    ),
-  },
-  {
-    path: "/games",
-    children: [
-      //specific game page /games/123
-      {
-        path: ":gameID",
-        element: (
-          <Layout>
-            <GameDetail backend={backend} />
-          </Layout>
-        ),
-      },
-      //genres page  /games/genres
-      {
-        path: "genres",
-        element: (
-          <Layout>
-            <Genres backend={backend} />
-          </Layout>
-        ),
-      },
-      //specific genre page /games/genres/456
-      {
-        path: "genres/:genreID",
-        element: (
-          <Layout>
-            <GenreGames backend={backend} />
-          </Layout>
-        ),
-      },
-    ],
-  },
-  //user submit and edit tickets
-  {
-    path: "/submit",
-    element: (
-      <Layout>
-        <Submit backend={backend} />
-      </Layout>
-    ),
-    //makes it /submit/queue
-    children: [
-      {
-        path: "queue",
-        element: (
-          <Layout>
-            <Queue backend={backend} />
-          </Layout>
-        ),
-      },
-    ],
-  },
-  {
-    path: "/user",
-    element: (
-      <Layout>
-        <UserProfile backend={backend} />
-      </Layout>
-    ),
-    //makes it /user/settings
-    children: [
-      {
-        path: "settings",
-        element: (
-          <Layout>
-            <Settings backend={backend} />
-          </Layout>
-        ),
-      },
-    ],
-  },
+  // {
+  //   path: "/charts",
+  //   element: (
+  //     <Layout>
+  //       <Chart backend={backend} />
+  //     </Layout>
+  //   ),
+  // },
+  // {
+  //   path: "/games",
+  //   children: [
+  //     //specific game page /games/123
+  //     {
+  //       path: ":gameID",
+  //       element: (
+  //         <Layout>
+  //           <GameDetail backend={backend} />
+  //         </Layout>
+  //       ),
+  //     },
+  //     //genres page  /games/genres
+  //     {
+  //       path: "genres",
+  //       element: (
+  //         <Layout>
+  //           <Genres backend={backend} />
+  //         </Layout>
+  //       ),
+  //     },
+  //     //specific genre page /games/genres/456
+  //     {
+  //       path: "genres/:genreID",
+  //       element: (
+  //         <Layout>
+  //           <GenreGames backend={backend} />
+  //         </Layout>
+  //       ),
+  //     },
+  //   ],
+  // },
+  // //user submit and edit tickets
+  // {
+  //   path: "/submit",
+  //   element: (
+  //     <Layout>
+  //       <Submit backend={backend} />
+  //     </Layout>
+  //   ),
+  //   //makes it /submit/queue
+  //   children: [
+  //     {
+  //       path: "queue",
+  //       element: (
+  //         <Layout>
+  //           <Queue backend={backend} />
+  //         </Layout>
+  //       ),
+  //     },
+  //   ],
+  // },
+  // {
+  //   path: "/user",
+  //   element: (
+  //     <Layout>
+  //       <UserProfile backend={backend} />
+  //     </Layout>
+  //   ),
+  //   //makes it /user/settings
+  //   children: [
+  //     {
+  //       path: "settings",
+  //       element: (
+  //         <Layout>
+  //           <Settings backend={backend} />
+  //         </Layout>
+  //       ),
+  //     },
+  //   ],
+  // },
 ]);
 
 //context wrapped
