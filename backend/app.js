@@ -10,7 +10,7 @@ const authRouter = require("./routers/authRouter");
 const chartRouter = require("./routers/chartRouter");
 const gamesRouter = require("./routers/gamesRouter");
 const userRouter = require("./routers/userRouter");
-const submitRouter = reqire("./routers/submitRouter");
+const submitRouter = require("./routers/submitRouter");
 const adminRouter = require("./routers/adminRouter");
 
 //app start
