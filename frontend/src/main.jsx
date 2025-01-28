@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import { AuthProvider } from "./authContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Chart from "./pages/Chart";
 
 const backend = "http://localhost:3000/";
 
@@ -30,16 +31,16 @@ const router = createBrowserRouter([
       </Layout>
     ),
   },
-  //users will first LIKELY go here
-  //they will see the top games of the website
-  // {
-  //   path: "/charts",
-  //   element: (
-  //     <Layout>
-  //       <Chart backend={backend} />
-  //     </Layout>
-  //   ),
-  // },
+  // users will first LIKELY go here
+  // they will see the top games of the website
+  {
+    path: "/charts",
+    element: (
+      <Layout>
+        <Chart backend={backend} />
+      </Layout>
+    ),
+  },
   // {
   //   path: "/games",
   //   children: [
