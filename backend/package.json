@@ -11,5 +11,8 @@
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "prisma": "^6.2.1"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }
