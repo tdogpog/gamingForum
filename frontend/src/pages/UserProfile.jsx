@@ -4,9 +4,11 @@ import axios from "axios";
 import { useAuth } from "../authContext"; //custom hook
 
 export default function UserProfile({ backend }) {
+  const { user } = useAuth();
   const { username } = useParams();
   const [userData, setUserData] = useState([]);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch data from the backend API
@@ -26,7 +28,7 @@ export default function UserProfile({ backend }) {
     };
 
     fetchUserProfile(); // Call the function on mount
-  }, [backend, username]); // Re-run when the backend changes
+  }, [backend, username]); // Re-run when the backend or username changes
 
   if (error) {
     return <div>{error}</div>; // If there's an error, display the error message
@@ -37,6 +39,11 @@ export default function UserProfile({ backend }) {
       <div className="profile-header">
         <h1>{userData.username}</h1>
         <p>{userData.email}</p>
+        {user?.username === userData.username && (
+          <Link to="/user/settings" state={{ userData }}>
+            <button>Edit Profile</button>
+          </Link>
+        )}
       </div>
 
       <div className="profile-picture">

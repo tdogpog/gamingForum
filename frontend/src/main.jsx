@@ -100,17 +100,14 @@ const router = createBrowserRouter([
         <UserProfile backend={backend} />
       </Layout>
     ),
-    //makes it /user/settings
-    children: [
-      {
-        path: "settings",
-        element: (
-          <Layout>
-            <Settings backend={backend} />
-          </Layout>
-        ),
-      },
-    ],
+  },
+  {
+    path: "/user/settings",
+    element: (
+      <Layout>
+        <Settings backend={backend} />
+      </Layout>
+    ),
   },
 ]);
 
