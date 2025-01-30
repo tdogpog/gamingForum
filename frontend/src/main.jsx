@@ -94,7 +94,7 @@ const router = createBrowserRouter([
   //   ],
   // },
   {
-    path: "/user",
+    path: "/user/:username",
     element: (
       <Layout>
         <UserProfile backend={backend} />

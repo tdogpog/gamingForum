@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../authContext"; //custom hook
 
-export default function Chart({ backend }) {
-  const { user } = useAuth();
+export default function UserProfile({ backend }) {
+  const { username } = useParams();
   const [userData, setUserData] = useState([]);
   const [error, setError] = useState(null);
 
@@ -12,7 +13,7 @@ export default function Chart({ backend }) {
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem("token"); // Or use context to get token if needed
-        const response = await axios.get(`${backend}${user.id}`, {
+        const response = await axios.get(`${backend}user/${username}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -66,6 +67,7 @@ export default function Chart({ backend }) {
                     alt={follower.follower.username}
                     className="follower-avatar"
                   />
+                  <Link to={`/user/${follower.follower.username}`}></Link>
                   {follower.follower.username}
                 </li>
               ))}
@@ -86,6 +88,7 @@ export default function Chart({ backend }) {
                     alt={followed.followed.username}
                     className="following-avatar"
                   />
+                  <Link to={`/user/${followed.followed.username}`}></Link>
                   {followed.followed.username}
                 </li>
               ))}
