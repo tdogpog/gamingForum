@@ -26,7 +26,7 @@ export default function UserProfile({ backend }) {
     };
 
     fetchUserProfile(); // Call the function on mount
-  }, [backend]); // Re-run when the backend changes
+  }, [backend, username]); // Re-run when the backend changes
 
   if (error) {
     return <div>{error}</div>; // If there's an error, display the error message
@@ -67,8 +67,9 @@ export default function UserProfile({ backend }) {
                     alt={follower.follower.username}
                     className="follower-avatar"
                   />
-                  <Link to={`/user/${follower.follower.username}`}></Link>
-                  {follower.follower.username}
+                  <Link to={`/user/${follower.follower.username}`}>
+                    {follower.follower.username}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -88,8 +89,9 @@ export default function UserProfile({ backend }) {
                     alt={followed.followed.username}
                     className="following-avatar"
                   />
-                  <Link to={`/user/${followed.followed.username}`}></Link>
-                  {followed.followed.username}
+                  <Link to={`/user/${followed.followed.username}`}>
+                    {followed.followed.username}
+                  </Link>
                 </li>
               ))}
             </ul>
