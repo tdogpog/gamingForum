@@ -17,6 +17,15 @@ const adminRouter = require("./routers/adminRouter");
 const app = express();
 
 //general middleware
+
+//serve static assets for user profile pictures and splash arts
+//the multer needs this to render from these respective directories
+//when the front end requests images
+app.use(
+  "/uploads/profile_pictures",
+  express.static("uploads/profile_pictures")
+);
+app.use("/uploads/splash_arts", express.static("uploads/splash_arts"));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

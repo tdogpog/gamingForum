@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcrypt");
-
 const prisma = new PrismaClient();
+const fs = require("fs");
 
 async function getUserProfile(req, res) {
   try {
@@ -58,8 +58,7 @@ async function getUserProfile(req, res) {
 
 async function createUser(req, res) {
   try {
-    const { username, email, password, passwordconfirm, profile_picture } =
-      req.body;
+    const { username, email, password, passwordconfirm } = req.body;
 
     if (!username || !email || !password || !passwordconfirm) {
       return res
@@ -71,6 +70,18 @@ async function createUser(req, res) {
       return res.status(400).json({ error: "Passwords must match" });
     }
 
+    //allow a reassign if the file exists
+    let profilePicturePath = null;
+    if (req.file) {
+      //unique filename using timestamp and original name
+      profilePicturePath = `profile_pictures/${Date.now()}-${
+        req.file.originalname
+      }`;
+
+      //rename and move the uploaded file to the desired location
+      fs.renameSync(req.file.path, path.join("uploads", profilePicturePath));
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -78,7 +89,7 @@ async function createUser(req, res) {
         username,
         email,
         password: hashedPassword,
-        profile_picture,
+        profile_picture: profilePicturePath,
       },
     });
 
@@ -100,12 +111,48 @@ async function createUser(req, res) {
 }
 
 async function updateUserSettings(req, res) {
+  //allow a reassign if the file exists
+  let profilePicturePath = null;
+
   try {
     const userID = req.user.id;
 
+    const currentUserProfilePic = await prisma.user.findUnique({
+      where: { id: userID },
+      select: { profile_picture: true },
+    });
+
+    //process to delete the old user profile picture if it exists and if they uploaded a file
+    // if they have a pic and they send a req with a file, it has to be a profile picture
+
+    if (currentUserProfilePic.profile_picture && req.file) {
+      const oldFilePath = path.join(
+        "uploads",
+        currentUserProfilePic.profile_picture
+      );
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    if (req.file) {
+      //unique filename using timestamp and original name
+      profilePicturePath = `profile_pictures/${Date.now()}-${
+        req.file.originalname
+      }`;
+
+      //rename and move the uploaded file to the desired location
+      fs.renameSync(req.file.path, path.join("uploads", profilePicturePath));
+    }
+
+    const updateData = {
+      ...req.body, //spread the existing body data
+      ...(profilePicturePath && { profile_picture: profilePicturePath }), //conditionally add profile_picture
+    };
+
     const updateProfile = await prisma.user.update({
       where: { id: userID },
-      data: req.body,
+      data: updateData,
     });
     res.status(200).json({ message: "Profile updated", updateProfile });
   } catch (error) {
@@ -113,6 +160,7 @@ async function updateUserSettings(req, res) {
     res.status(500).json({ error: "An error occurred while updating profile" });
   }
 }
+
 async function deleteUserAccount(req, res) {
   try {
     const userID = req.user.id;
