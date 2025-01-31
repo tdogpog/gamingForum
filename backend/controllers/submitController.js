@@ -48,17 +48,23 @@ async function getQueue(req, res) {
 //posting a new game with false flag to db
 async function postSubmitForm(req, res) {
   try {
-    const { title, releaseDate, coverImage, developer } = req.body;
+    const { title, releaseDate, developer } = req.body;
 
-    if (!title || !releaseDate || !developer || !coverImage) {
+    if (!title || !releaseDate || !developer || !req.file) {
       return res.status(400).json({ error: "All fields are required" });
     }
+
+    //unique filename using timestamp and original name
+    coverImagePath = `coverImage/${Date.now()}-${req.file.originalname}`;
+
+    //rename and move the uploaded file to the desired location
+    fs.renameSync(req.file.path, path.join("uploads", coverImagePath));
 
     const post = await prisma.game.create({
       data: {
         title,
         releaseDate,
-        coverImage,
+        coverImage: coverImagePath,
         developer,
         approved: false,
       },
@@ -79,10 +85,33 @@ async function editGameInfo(req, res) {
   try {
     const userID = req.user.id; //userID fed in by the isUser middleware
     const gameID = req.params.gameID;
-    const { title, releaseDate, coverImage, developer } = req.body;
+    const { title, releaseDate, developer } = req.body;
 
     if (!gameID) {
       return res.status(400).json({ error: "Game ID is required." });
+    }
+
+    const currentCoverImage = await prisma.game.findUnique({
+      where: { id: gameID },
+      select: { coverImage: true },
+    });
+
+    if (currentUserProfilePic.profile_picture && req.file) {
+      const oldFilePath = path.join(
+        "uploads",
+        currentUserProfilePic.profile_picture
+      );
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    if (req.file) {
+      //unique filename using timestamp and original name
+      profilePicturePath = `coverImage/${Date.now()}-${req.file.originalname}`;
+
+      //rename and move the uploaded file to the desired location
+      fs.renameSync(req.file.path, path.join("uploads", profilePicturePath));
     }
 
     const editTicket = await prisma.gameEdit.create({
