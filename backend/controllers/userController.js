@@ -79,7 +79,10 @@ async function createUser(req, res) {
       }`;
 
       //rename and move the uploaded file to the desired location
-      fs.renameSync(req.file.path, path.join("uploads", profilePicturePath));
+      fs.renameSync(
+        req.file.path,
+        path.join("uploads", "profile_pictures", profilePicturePath)
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -128,6 +131,7 @@ async function updateUserSettings(req, res) {
     if (currentUserProfilePic.profile_picture && req.file) {
       const oldFilePath = path.join(
         "uploads",
+        "profile_pictures",
         currentUserProfilePic.profile_picture
       );
       if (fs.existsSync(oldFilePath)) {
@@ -142,7 +146,10 @@ async function updateUserSettings(req, res) {
       }`;
 
       //rename and move the uploaded file to the desired location
-      fs.renameSync(req.file.path, path.join("uploads", profilePicturePath));
+      fs.renameSync(
+        req.file.path,
+        path.join("uploads", "profile_pictures", profilePicturePath)
+      );
     }
 
     const updateData = {
