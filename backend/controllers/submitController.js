@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const fs = require("fs");
 
 const prisma = new PrismaClient();
 
@@ -91,35 +92,33 @@ async function editGameInfo(req, res) {
       return res.status(400).json({ error: "Game ID is required." });
     }
 
-    const currentCoverImage = await prisma.game.findUnique({
+    const currentGame = await prisma.game.findUnique({
       where: { id: gameID },
       select: { coverImage: true },
     });
 
-    if (currentUserProfilePic.profile_picture && req.file) {
-      const oldFilePath = path.join(
-        "uploads",
-        currentUserProfilePic.profile_picture
-      );
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
-      }
-    }
+    let coverImagePath = currentGame.coverImage; //default to current cover image if not changing
 
     if (req.file) {
       //unique filename using timestamp and original name
-      profilePicturePath = `coverImage/${Date.now()}-${req.file.originalname}`;
+      coverImagePath = `coverImage/${Date.now()}-${req.file.originalname}`;
 
       //rename and move the uploaded file to the desired location
-      fs.renameSync(req.file.path, path.join("uploads", profilePicturePath));
+      fs.renameSync(req.file.path, path.join("uploads", coverImagePath));
     }
 
+    //on the front end check the existing data vs the input data
+    // ONLY send the differences, so not send field will default to null
+    //so when we merge, if its a null field, game model keeps its data bc that was unchanged on front
+    //if not null, game model takes in data
+    //this way we can save on payload to the backend and merge efficiently across
+    //null and not null fields
     const editTicket = await prisma.gameEdit.create({
       data: {
         gameID: gameID,
         title: title || null,
         releaseDate: releaseDate || null,
-        coverImage: coverImage || null,
+        coverImage: coverImagePath || null,
         developer: developer || null,
         submittedBy: userID,
       },
@@ -172,13 +171,24 @@ async function approveGameEdit(req, res) {
     }
 
     //fill out object with ticket updates
+    // ?? is if left is null return right
+    //this matches our edit ticketing process for nulling unchanged fields
     const updatedGame = {
-      title: gameEdit.title || game.title,
-      releaseDate: gameEdit.releaseDate || game.releaseDate,
-      coverImage: gameEdit.coverImage || game.coverImage,
-      developer: gameEdit.developer || game.developer,
+      title: gameEdit.title ?? game.title,
+      releaseDate: gameEdit.releaseDate ?? game.releaseDate,
+      coverImage: gameEdit.coverImage ?? game.coverImage,
+      developer: gameEdit.developer ?? game.developer,
       approved: true,
     };
+
+    //if cover image has changed, delete the old one
+    if (gameEdit.coverImage) {
+      const oldFilePath = path.join("uploads", game.coverImage);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath); // delete old image from filesystem
+      }
+      updatedGame.coverImage = gameEdit.coverImage; // update with the new cover image
+    }
 
     //update existing game with suggested updates
     const result = await prisma.game.update({
