@@ -25,7 +25,7 @@ app.use(
   "/uploads/profile_pictures",
   express.static("uploads/profile_pictures")
 );
-app.use("/uploads/splash_arts", express.static("uploads/splash_arts"));
+app.use("/uploads/coverImage", express.static("uploads/coverImage"));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
