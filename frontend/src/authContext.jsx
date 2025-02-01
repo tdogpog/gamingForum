@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import PropTypes from "prop-types";
 
 const AuthContext = createContext();
 
@@ -33,11 +34,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout }}>
+    <AuthContext.Provider value={{ user, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 //easy export so we can just use useAuth(); when we need the context
+//ignore the eslint flag
 export const useAuth = () => useContext(AuthContext);
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};

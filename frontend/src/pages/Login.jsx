@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../authContext"; //custom hook
 
 export default function Login({ backend }) {
   const [userName, setuserName] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { setUser } = useAuth(); // need to refresh component
 
   //OUTDATED REDIRECT LOGIC FOR NOW FROM PAST LOGIC.. IDEALLY REDIR TO LAST PAGE THEY WERE ON???
   useEffect(() => {
@@ -24,8 +27,20 @@ export default function Login({ backend }) {
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
-      navigate("/");
+      const token = response.data.token;
+      localStorage.setItem("token", token);
+
+      //update the context
+      //this will trigger component regen on all things that rely on context
+      //so conditional rendering works properly when you login
+      const decoded = jwtDecode(token);
+      setUser({
+        id: decoded.id,
+        username: decoded.username,
+        role: decoded.role,
+      });
+
+      navigate("/"); // Redirect after login
     } catch (error) {
       console.log("Error with login:", error.message);
       alert("Error with the try on login");

@@ -1,10 +1,17 @@
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../authContext"; //custom hook
 
 export default function Layout({ children }) {
   //context access
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogoutClick = () => {
+    logout(); //logout from context
+    navigate("/"); //back to the homepage
+  };
+
   return (
     <div className="appContainer">
       <div className="appHeaderContainer">
@@ -25,7 +32,7 @@ export default function Layout({ children }) {
                 <Link to={`/user/${user.username}`}>
                   Welcome, {user.username}
                 </Link>
-                <button onClick={logout}>Logout</button>
+                <button onClick={handleLogoutClick}>Logout</button>
               </>
             ) : (
               <Link to={"/auth"}>Login or Create an Account</Link>
