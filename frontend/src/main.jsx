@@ -7,6 +7,7 @@ import { AuthProvider } from "./authContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Chart from "./pages/Chart";
+import Signup from ".pages/Signup";
 
 const backend = "http://localhost:3000/";
 
@@ -28,6 +29,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Login backend={backend} />
+      </Layout>
+    ),
+  },
+  {
+    path: "/signup",
+    element: (
+      <Layout>
+        <Signup backend={backend} />
       </Layout>
     ),
   },

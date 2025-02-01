@@ -25,7 +25,9 @@ export default function Layout({ children }) {
             </button>
             {user ? ( // Conditionally render based on user's auth status
               <>
-                <Link to={`/user/${user.username}`}>Profile</Link>
+                <Link to={`/user/${user.username}`}>
+                  {user.username}'s Profile
+                </Link>
                 <button onClick={logout}>Logout</button>
               </>
             ) : (

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 export default function Login({ backend }) {
   const [userName, setuserName] = useState("");
   const [password, setPassword] = useState("");
@@ -17,26 +19,13 @@ export default function Login({ backend }) {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${backend}auth`, {
-        method: "POST",
-        //MUST FOR A JSON PAYLOAD
-        headers: {
-          "Content-Type": "application/json",
-        },
-        //js object into json
-        body: JSON.stringify({
-          username: userName,
-          password: password,
-        }),
+      const response = await axios.post(`${backend}user`, {
+        username: userName,
+        password,
       });
-      const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        navigate("/");
-      } else {
-        alert(data.message || "Login Error, Invalid Credentials.");
-      }
+      localStorage.setItem("token", response.data.token);
+      navigate("/");
     } catch (error) {
       console.log("Error with login:", error.message);
       alert("Error with the try on login");
@@ -72,6 +61,7 @@ export default function Login({ backend }) {
             <button type="submit">Login</button>
           </form>
         </div>
+        <Link to={`/signup`}>Create an account</Link>
       </div>
     </div>
   );
