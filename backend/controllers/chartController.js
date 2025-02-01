@@ -13,6 +13,7 @@ async function getTopChart(req, res) {
         developer: true,
         avgRating: true,
         reviewCount: true,
+        ratingCount: true,
       },
     });
 

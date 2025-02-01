@@ -1,8 +1,10 @@
 import { useLocation } from "react-router-dom";
 import { useState } from "react";
+import PropTypes from "prop-types";
+
 import axios from "axios";
 
-export default function Settings() {
+export default function Settings({ backend }) {
   const { state } = useLocation();
   const user = state?.userData;
 
@@ -53,11 +55,18 @@ export default function Settings() {
       console.log("Sending updated fields: ", updatedFields);
       try {
         const token = localStorage.getItem("token"); // Or use context to get token if needed
-        await axios.put(`${backend}settings`, updatedFields, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const upload = await axios.put(
+          `${backend}user/settings`,
+          updatedFields,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (upload) {
+          setUploaded(true);
+        }
       } catch (error) {
         setError("Error fetching user profile."); // Handle errors
         console.error("Error fetching user profile:", error);
@@ -67,10 +76,13 @@ export default function Settings() {
     }
   };
 
+  if (error) {
+    return <div>{error}</div>; // If there's an error, display the error message
+  }
+
   return (
     <div>
       <h2>Edit Profile</h2>
-      {uploaded && <p style={{ color: "green" }}>Successful upload!</p>}
       <form onSubmit={handleSubmit}>
         <label>
           Profile Picture
@@ -94,7 +106,12 @@ export default function Settings() {
         </label>
         <br />
         <button type="submit">Save Changes</button>
+        {uploaded && <p style={{ color: "green" }}>Profile updated!</p>}
       </form>
     </div>
   );
 }
+
+Settings.propTypes = {
+  backend: PropTypes.string.isRequired,
+};

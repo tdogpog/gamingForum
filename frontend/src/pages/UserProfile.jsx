@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import PropTypes from "prop-types";
 import axios from "axios";
 import { useAuth } from "../authContext"; //custom hook
 
@@ -8,7 +9,6 @@ export default function UserProfile({ backend }) {
   const { username } = useParams();
   const [userData, setUserData] = useState([]);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch data from the backend API
@@ -37,7 +37,7 @@ export default function UserProfile({ backend }) {
   return (
     <div className="profile-container">
       <div className="profile-header">
-        <h1>{userData.username}</h1>
+        <h2>{userData.username}</h2>
         <p>{userData.email}</p>
         {user?.username === userData.username && (
           <Link to="/user/settings" state={{ userData }}>
@@ -53,7 +53,7 @@ export default function UserProfile({ backend }) {
             alt={`${userData.username}'s profile picture`}
           />
         ) : (
-          <div className="default-avatar">No Image</div>
+          <div className="default-avatar">No Profile Picture</div>
         )}
       </div>
 
@@ -120,3 +120,7 @@ export default function UserProfile({ backend }) {
     </div>
   );
 }
+
+UserProfile.propTypes = {
+  backend: PropTypes.string.isRequired,
+};
