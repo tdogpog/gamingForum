@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+
 import axios from "axios";
 
 export default function Chart({ backend }) {
@@ -11,12 +13,7 @@ export default function Chart({ backend }) {
     // Fetch data from the backend API
     const fetchTopGames = async () => {
       try {
-        const token = localStorage.getItem("token"); // Or use context to get token if needed
-        const response = await axios.get(`${backend}charts`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(`${backend}charts`);
         setTopGames(response.data); // Set the fetched games to state
       } catch (error) {
         setError("Error fetching top games."); // Handle errors
@@ -52,3 +49,7 @@ export default function Chart({ backend }) {
     </div>
   );
 }
+
+Chart.propTypes = {
+  backend: PropTypes.string.isRequired,
+};

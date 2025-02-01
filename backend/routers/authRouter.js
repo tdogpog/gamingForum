@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const authRouter = Router();
 
-authRouter.post("/login", (req, res, next) => {
+authRouter.post("/", (req, res, next) => {
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err || !user) {
       return res

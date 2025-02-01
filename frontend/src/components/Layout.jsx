@@ -20,20 +20,15 @@ export default function Layout({ children }) {
           </Link>
 
           <div className="headerButtons">
-            <button className="backButton">
-              <Link to={"/"}>Back to Home</Link>
-            </button>
             {user ? ( // Conditionally render based on user's auth status
               <>
                 <Link to={`/user/${user.username}`}>
-                  {user.username}'s Profile
+                  Logged in as {user.username}
                 </Link>
                 <button onClick={logout}>Logout</button>
               </>
             ) : (
-              <button className="backButton">
-                <Link to={"/auth"}>Login or Create an Account</Link>
-              </button>
+              <Link to={"/auth"}>Login or Create an Account</Link>
             )}
           </div>
         </header>

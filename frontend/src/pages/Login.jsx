@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 export default function Login({ backend }) {
@@ -19,7 +19,7 @@ export default function Login({ backend }) {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${backend}user`, {
+      const response = await axios.post(`${backend}auth`, {
         username: userName,
         password,
       });

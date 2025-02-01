@@ -7,7 +7,9 @@ import { AuthProvider } from "./authContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Chart from "./pages/Chart";
-import Signup from ".pages/Signup";
+import Signup from "./pages/Signup";
+import UserProfile from "./pages/UserProfile";
+import Settings from "./pages/Settings";
 
 const backend = "http://localhost:3000/";
 
