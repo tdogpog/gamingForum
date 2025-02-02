@@ -33,7 +33,7 @@ userRouter.get("/:username", isUser, getUserProfile);
 
 //posts
 //upload.single(arg) arg must match front end for ex <input type="file" name="arg" />
-userRouter.get("/", upload.single("profile_picture"), createUser);
+userRouter.post("/", upload.single("profile_picture"), createUser);
 
 //puts
 userRouter.put(

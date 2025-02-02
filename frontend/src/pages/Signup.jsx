@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../authContext"; //custom hook
 
 export default function Signup({ backend }) {
   const [formData, setFormData] = useState({
@@ -12,13 +14,7 @@ export default function Signup({ backend }) {
   });
   const navigate = useNavigate();
   const [passwordError, setPasswordError] = useState(false); // Error state
-
-  //OUTDATED REDIRECT LOGIC FOR NOW FROM PAST LOGIC.. IDEALLY REDIR TO LAST PAGE THEY WERE ON???
-  useEffect(() => {
-    if (localStorage.getItem("token")) {
-      navigate("/");
-    }
-  }, []);
+  const { setUser } = useAuth(); // need to refresh component
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,14 +35,28 @@ export default function Signup({ backend }) {
         email,
       });
 
-      //log the user in if account creation is successful
-      const loginResponse = await axios.post(`${backend}auth`, {
-        username,
-        password,
-      });
+      //duplication of the exact same code we use for logging in
+      //its a clean experience to log the user in immediately when they create an account
+      if (response) {
+        const loginResponse = await axios.post(`${backend}auth`, {
+          username,
+          password,
+        });
+        const token = loginResponse.data.token;
+        localStorage.setItem("token", token);
 
-      localStorage.setItem("token", loginResponse.data.token);
-      navigate("/"); //redir to homepage
+        //update the context
+        //this will trigger component regen on all things that rely on context
+        //so conditional rendering works properly when you login
+        const decoded = jwtDecode(token);
+        setUser({
+          id: decoded.id,
+          username: decoded.username,
+          role: decoded.role,
+        });
+
+        navigate("/"); // Redirect after login
+      }
     } catch (error) {
       console.log("Error during account creation or login:", error.message);
       alert(
@@ -69,17 +79,17 @@ export default function Signup({ backend }) {
           <h2>Create Account</h2>
           <form onSubmit={handleSubmit} className="login-form">
             <div>
-              <label htmlFor="userName">Username</label>
+              <label htmlFor="username">Username</label>
               <input
                 type="text"
-                id="userName"
+                id="username"
                 value={formData.username}
                 onChange={handleChange}
                 required
               />
             </div>
             <div>
-              <label htmlFor="email">email</label>
+              <label htmlFor="email">Email</label>
               <input
                 type="email"
                 id="email"
@@ -113,12 +123,7 @@ export default function Signup({ backend }) {
                 Passwords must match
               </div>
             )}
-            <button
-              type="submit"
-              disabled={formData.password !== formData.passwordconfirm}
-            >
-              Signup
-            </button>
+            <button type="submit">Signup</button>
           </form>
         </div>
       </div>
@@ -129,3 +134,11 @@ export default function Signup({ backend }) {
 Signup.propTypes = {
   backend: PropTypes.string.isRequired,
 };
+
+//notes:
+//maybe some better feedback when the user logs in?
+//im thinking conditional rendering on the homepage
+//where it typically says welcome to overclocked
+//we can have welcome to overlocked, user
+//to show that they are indeed now logged in
+//QOL for later
