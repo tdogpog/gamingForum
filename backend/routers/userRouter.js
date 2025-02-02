@@ -24,6 +24,8 @@ const {
   createUser,
   updateUserSettings,
   deleteUserAccount,
+  followUser,
+  unfollowUser,
 } = require("../controllers/userController");
 
 const userRouter = Router();
@@ -35,6 +37,8 @@ userRouter.get("/:username", isUser, getUserProfile);
 //upload.single(arg) arg must match front end for ex <input type="file" name="arg" />
 userRouter.post("/", upload.single("profile_picture"), createUser);
 
+userRouter.post("/:username/follow", isUser, followUser);
+
 //puts
 userRouter.put(
   "/settings",
@@ -45,5 +49,6 @@ userRouter.put(
 
 //deletes
 userRouter.delete("/settings/delete", isUser, deleteUserAccount);
+userRouter.delete("/:username/follow", isUser, unfollowUser);
 
 module.exports = userRouter;

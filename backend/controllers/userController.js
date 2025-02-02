@@ -19,11 +19,9 @@ async function getUserProfile(req, res) {
         //who user is following
         following: {
           select: {
-            id: true,
             //instances where the user followed someone
             followed: {
               select: {
-                id: true,
                 username: true,
                 profile_picture: true,
               },
@@ -34,11 +32,9 @@ async function getUserProfile(req, res) {
         //users followers
         followers: {
           select: {
-            id: true,
             //instances of followers on the user
             follower: {
               select: {
-                id: true,
                 username: true,
                 profile_picture: true,
               },
@@ -49,7 +45,34 @@ async function getUserProfile(req, res) {
       },
     });
 
-    res.status(200).json(userData);
+    //GOOD METHOD FOR FLATTENING A NESTED QUERY:
+    //MAP TO CREATE A NEW ARRAY WHERE YOU EXTRACT EACH ENTRY
+    //INSIDE OF FOLLOWING
+    //   "following": [
+    //   { "followed": { "username": "john_smith", "profile_picture": "/path/to/john.jpg" } },
+    //   { "followed": { "username": "jane_doe", "profile_picture": "/path/to/jane.jpg" } }
+    // ],
+
+    // [
+    //   { "username": "john_smith", "profile_picture": "/path/to/john.jpg" },
+    //   { "username": "jane_doe", "profile_picture": "/path/to/jane.jpg" }
+    // ]
+
+    const flattenedFollowing = userData.following.map(
+      (follow) => follow.followed
+    );
+    const flattenedFollowers = userData.followers.map(
+      (follow) => follow.follower
+    );
+
+    //THEN ALIAS THE FLATTENED ARRAYS TO OVERWRITE THE NESTED DATA VIA THE SPREAD
+    const userDataFlat = {
+      ...userData,
+      following: flattenedFollowing,
+      followers: flattenedFollowers,
+    };
+
+    res.status(200).json(userDataFlat);
   } catch (error) {
     console.error("Error fetching profile:", error.message);
     res.status(500).json({ error: "An error occurred while fetching profile" });
@@ -173,10 +196,20 @@ async function deleteUserAccount(req, res) {
     res.status(500).json({ error: "An error occurred while deleting account" });
   }
 }
+async function followUser(req, res) {
+  try {
+  } catch (error) {}
+}
+async function unfollowUser(req, res) {
+  try {
+  } catch (error) {}
+}
 
 module.exports = {
   getUserProfile,
   createUser,
   updateUserSettings,
   deleteUserAccount,
+  followUser,
+  unfollowUser,
 };

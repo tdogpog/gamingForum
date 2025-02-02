@@ -8,6 +8,7 @@ export default function UserProfile({ backend }) {
   const { user } = useAuth();
   const { username } = useParams();
   const [userData, setUserData] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -21,6 +22,19 @@ export default function UserProfile({ backend }) {
           },
         });
         setUserData(response.data); // Set the fetched games to state
+
+        //parse through the followers array of a user we're visiting and check if
+        //the logged in user is found in their follower list
+        //some is a method in js that checks if at least one element meets the condition
+        //if it does, returns true
+        //this will help us determine in conditional rendering
+        //whether we need to follow or unfollow
+        //and how to comm with the api
+        setIsFollowing(
+          response.data.followers.some(
+            (follower) => follower.username == user.username
+          )
+        );
       } catch (error) {
         setError("Error fetching user profile."); // Handle errors
         console.error("Error fetching user profile:", error);
@@ -28,7 +42,40 @@ export default function UserProfile({ backend }) {
     };
 
     fetchUserProfile(); // Call the function on mount
-  }, [backend, username]); // Re-run when the backend or username changes
+  }, [backend, username, user.username]); // Re-run when the backend or username changes
+
+  const handleFollow = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (isFollowing) {
+        await axios.post(
+          `${backend}user/${username}/follow`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setIsFollowing(false);
+      } else {
+        // Call API to follow
+        await axios.post(
+          `${backend}user/${username}/follow`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      setError("Error updating follow status.");
+      console.error("Error following/unfollowing:", error);
+    }
+  };
 
   if (error) {
     return <div>{error}</div>; // If there's an error, display the error message
@@ -43,6 +90,11 @@ export default function UserProfile({ backend }) {
           <Link to="/user/settings" state={{ userData }}>
             <button>Edit Profile</button>
           </Link>
+        )}
+        {user.username !== userData.username && (
+          <button onClick={handleFollow}>
+            {isFollowing ? "Unfollow" : "Follow"}
+          </button>
         )}
       </div>
 
@@ -68,14 +120,14 @@ export default function UserProfile({ backend }) {
           {userData.followers && userData.followers.length > 0 ? (
             <ul>
               {userData.followers.map((follower) => (
-                <li key={follower.id}>
+                <li key={follower.username}>
                   <img
-                    src={follower.follower.profile_picture}
-                    alt={follower.follower.username}
+                    src={follower.profile_picture}
+                    alt={follower.username}
                     className="follower-avatar"
                   />
-                  <Link to={`/user/${follower.follower.username}`}>
-                    {follower.follower.username}
+                  <Link to={`/user/${follower.username}`}>
+                    {follower.username}
                   </Link>
                 </li>
               ))}
@@ -90,14 +142,14 @@ export default function UserProfile({ backend }) {
           {userData.following && userData.following.length > 0 ? (
             <ul>
               {userData.following.map((followed) => (
-                <li key={followed.id}>
+                <li key={followed.username}>
                   <img
-                    src={followed.followed.profile_picture}
-                    alt={followed.followed.username}
+                    src={followed.profile_picture}
+                    alt={followed.username}
                     className="following-avatar"
                   />
-                  <Link to={`/user/${followed.followed.username}`}>
-                    {followed.followed.username}
+                  <Link to={`/user/${followed.username}`}>
+                    {followed.username}
                   </Link>
                 </li>
               ))}
