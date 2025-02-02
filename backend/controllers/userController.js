@@ -198,11 +198,72 @@ async function deleteUserAccount(req, res) {
 }
 async function followUser(req, res) {
   try {
-  } catch (error) {}
+    const userID = req.user.id;
+    const targetUsername = req.params.username;
+
+    const targetUser = await prisma.user.findUnique({
+      where: { username: targetUsername },
+      select: { id: true },
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    //prisma will lock out attempts at duplicate follows and throws error
+    //P2002 which i put into the catch for graceful handling
+
+    await prisma.follow.create({
+      data: {
+        followerID: userID,
+        followedID: targetUser.id,
+      },
+    });
+
+    res.status(201).json({ message: "Follow successful." });
+  } catch (error) {
+    if (error.code === "P2002") {
+      return res
+        .status(400)
+        .json({ error: "You are already following this user." });
+    }
+    console.error("Error following user:", error);
+    res.status(500).json({ error: "An error occurred while following user." });
+  }
 }
+
 async function unfollowUser(req, res) {
   try {
-  } catch (error) {}
+    const userID = req.user.id;
+    const targetUsername = req.params.username;
+
+    const targetUser = await prisma.user.findUnique({
+      where: { username: targetUsername },
+      select: { id: true },
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    //use the composite key to delete
+    //since we have a @@unique on the model
+    await prisma.follow.delete({
+      where: {
+        followerID_followedID: {
+          followerID: userID,
+          followedID: targetUser.id,
+        },
+      },
+    });
+
+    res.status(200).json({ message: "Unfollow successful." });
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while unfollowing user." });
+  }
 }
 
 module.exports = {

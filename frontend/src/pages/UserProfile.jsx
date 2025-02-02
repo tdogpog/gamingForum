@@ -48,6 +48,7 @@ export default function UserProfile({ backend }) {
     try {
       const token = localStorage.getItem("token");
       if (isFollowing) {
+        //call api to unfollow
         await axios.post(
           `${backend}user/${username}/follow`,
           {},
@@ -59,7 +60,7 @@ export default function UserProfile({ backend }) {
         );
         setIsFollowing(false);
       } else {
-        // Call API to follow
+        //call API to follow
         await axios.post(
           `${backend}user/${username}/follow`,
           {},
