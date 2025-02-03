@@ -10,8 +10,18 @@ export default function UserProfile({ backend }) {
   const [userData, setUserData] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    //NEW ADDITIONS
+    //was running into a race conditions bug
+    //because we were still waiting on the context
+    // to decode the jwt and give us access
+    //causing a crash on refresh and manual url visit
+    if (!user) {
+      return;
+    }
+
     // Fetch data from the backend API
     const fetchUserProfile = async () => {
       try {
@@ -38,26 +48,25 @@ export default function UserProfile({ backend }) {
       } catch (error) {
         setError("Error fetching user profile."); // Handle errors
         console.error("Error fetching user profile:", error);
+      } finally {
+        //race conditions
+        setIsLoading(false);
       }
     };
 
     fetchUserProfile(); // Call the function on mount
-  }, [backend, username, user.username]); // Re-run when the backend or username changes
+  }, [backend, username, user]); // Re-run when the backend or username changes
 
   const handleFollow = async () => {
+    if (!user) return; // Guard clause for safety
     try {
       const token = localStorage.getItem("token");
       if (isFollowing) {
-        //call api to unfollow
-        await axios.post(
-          `${backend}user/${username}/follow`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axios.delete(`${backend}user/${username}/follow`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setIsFollowing(false);
       } else {
         //call API to follow
@@ -78,8 +87,18 @@ export default function UserProfile({ backend }) {
     }
   };
 
+  //race conditions
+  if (!user || isLoading) {
+    return <div>Loading...</div>;
+  }
+
   if (error) {
     return <div>{error}</div>; // If there's an error, display the error message
+  }
+
+  //race conditions
+  if (!userData) {
+    return <div>Loading user data...</div>;
   }
 
   return (
