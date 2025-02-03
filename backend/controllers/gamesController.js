@@ -129,31 +129,29 @@ async function getAllGenres(req, res) {
 
 async function getGenreGames(req, res) {
   try {
-    const genreID = req.params.genreID;
+    const genreName = req.params.genreName;
 
-    if (!genreID) {
+    if (!genreName) {
       return res.status(400).json({ error: "Invalid or missing genre ID" });
     }
 
-    const genreGames = await prisma.gameGenre.findMany({
+    //turn the name into an id from the params
+    //our gamegenres table is built on ID relations
+    const genre = await prisma.genre.findUnique({
+      where: { genreName: genreName },
+      select: {
+        id: true,
+      },
+    });
+
+    const genreGames = await prisma.game.findMany({
       where: {
-        genreID: genreID,
-        game: {
-          approved: true, // only include games that are approved
+        gameGenres: {
+          some: { genreID: genre.id }, //the 'some' fetches games that contain this genre in their genres
         },
       },
       include: {
-        game: {
-          select: {
-            id: true,
-            title: true,
-            releaseDate: true,
-            coverImage: true,
-            developer: true,
-            avgRating: true,
-            approved: true,
-          },
-        },
+        gameGenres: true, //genre relationships for sorting
       },
     });
 
@@ -161,10 +159,30 @@ async function getGenreGames(req, res) {
       return res.status(404).json({ error: "No games found for this genre" });
     }
 
-    // rip the gameGenre contents off and leave just the game:true details
-    const gameDetails = genreGames.map((index) => index.game);
+    // for each game in genreGames:
+    // sort game.gameGenres by totalVotes descending
+    // if the first genre matches the requested genre:
+    //     keep only the first two genres
+    //     add this game to the result
+    // else:
+    //     exclude this game
 
-    res.status(200).json(gameDetails);
+    const filteredGames = genreGames
+      .map((game) => {
+        //sort genres by total votes
+        game.gameGenres.sort((a, b) => b.totalVotes - a.totalVotes);
+
+        //check first genre is the one we query for
+        if (game.gameGenres[0].genreID === genre.genreID) {
+          const relevantGenres = game.gameGenres.slice(0, 2);
+          return { ...game, gameGenres: relevantGenres };
+        }
+
+        return null;
+      })
+      .filter(Boolean); //remove null entries aka where first genre was not genre.genreID
+
+    res.status(200).json(filteredGames);
   } catch (error) {
     console.error("Error fetching games by genre:", error.message); // Log the error
     res.status(500).json({ error: "Internal server error" }); // Handle server error
