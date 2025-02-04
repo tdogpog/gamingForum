@@ -10,6 +10,9 @@ import Chart from "./pages/Chart";
 import Signup from "./pages/Signup";
 import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
+import Genres from "./pages/Genres";
+// import GenreGames from "./pages/GenreGames";
+//import GameDetail from "./pages/GameDetail";
 
 const backend = "http://localhost:3000/";
 
@@ -52,38 +55,32 @@ const router = createBrowserRouter([
       </Layout>
     ),
   },
+  {
+    path: "/games/genres",
+    element: (
+      <Layout>
+        <Genres backend={backend} />
+      </Layout>
+    ),
+  },
   // {
-  //   path: "/games",
-  //   children: [
-  //     //specific game page /games/123
-  //     {
-  //       path: ":gameID",
-  //       element: (
-  //         <Layout>
-  //           <GameDetail backend={backend} />
-  //         </Layout>
-  //       ),
-  //     },
-  //     //genres page  /games/genres
-  //     {
-  //       path: "genres",
-  //       element: (
-  //         <Layout>
-  //           <Genres backend={backend} />
-  //         </Layout>
-  //       ),
-  //     },
-  //     //specific genre page /games/genres/456
-  //     {
-  //       path: "genres/:genreID",
-  //       element: (
-  //         <Layout>
-  //           <GenreGames backend={backend} />
-  //         </Layout>
-  //       ),
-  //     },
-  //   ],
+  //   path: "/games/genres/:genreID",
+  //   element: (
+  //     <Layout>
+  //       <GenreGames backend={backend} />
+  //     </Layout>
+  //   ),
   // },
+
+  // {
+  //   path: "/games/:gameID",
+  //   element: (
+  //     <Layout>
+  //       <GameDetail backend={backend} />
+  //     </Layout>
+  //   ),
+  // },
+
   // //user submit and edit tickets
   // {
   //   path: "/submit",
