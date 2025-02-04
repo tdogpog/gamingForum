@@ -35,14 +35,14 @@ async function updateGameReviewCount(gameID) {
 
 async function getGame(req, res) {
   try {
-    const gameID = req.params.gameID;
+    const slug = req.params.slug;
 
-    if (!gameID) {
+    if (!slug) {
       return res.status(400).json({ error: "Invalid or missing game ID" });
     }
 
     const game = await prisma.game.findUnique({
-      where: { id: gameID },
+      where: { slug: slug },
       select: {
         title: true,
         releaseDate: true,
@@ -191,14 +191,16 @@ async function getGenreGames(req, res) {
 
 async function postRating(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
   const { score } = req.body;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     //check if a rating already exists
     //use a composite key to enforce uniqueness
     const existingRating = await prisma.rating.findUnique({
-      where: { userID_gameID: { userID, gameID: gameID } },
+      where: { userID_gameID: { userID, gameID: game.id } },
     });
 
     if (existingRating) {
@@ -211,12 +213,12 @@ async function postRating(req, res) {
     const newRating = await prisma.rating.create({
       data: {
         userID,
-        gameID: gameID,
+        gameID: game.id,
         score,
       },
     });
 
-    await updateGameRatingStats(gameID);
+    await updateGameRatingStats(game.id);
 
     res.status(201).json(newRating);
   } catch (error) {
@@ -227,13 +229,15 @@ async function postRating(req, res) {
 
 async function updateRating(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
   const { score } = req.body;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     //find existing rating
     const existingRating = await prisma.rating.findUnique({
-      where: { userID_gameID: { userID, gameID: gameID } },
+      where: { userID_gameID: { userID, gameID: game.id } },
     });
 
     if (!existingRating) {
@@ -248,7 +252,7 @@ async function updateRating(req, res) {
       data: { score },
     });
 
-    await updateGameRatingStats(gameID);
+    await updateGameRatingStats(game.id);
 
     res.status(200).json(updatedRating);
   } catch (error) {
@@ -259,7 +263,7 @@ async function updateRating(req, res) {
 
 async function createReview(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
   const { title, content } = req.body;
 
   if (!title || !content) {
@@ -269,11 +273,13 @@ async function createReview(req, res) {
   }
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     const ratingWithReview = await prisma.rating.findUnique({
       where: {
         userID_gameID: {
           userID,
-          gameID,
+          gameID: game.id,
         },
       },
       include: {
@@ -299,14 +305,14 @@ async function createReview(req, res) {
     const newReview = await prisma.review.create({
       data: {
         userID,
-        gameID: gameID,
+        gameID: game.id,
         ratingID: ratingWithReview.id,
         title,
         content,
       },
     });
 
-    await updateGameReviewCount(gameID);
+    await updateGameReviewCount(game.id);
 
     res.status(201).json(newReview);
   } catch (error) {
@@ -317,7 +323,7 @@ async function createReview(req, res) {
 
 async function updateReview(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
   const { title, content } = req.body;
 
   if (!title || !content) {
@@ -325,8 +331,10 @@ async function updateReview(req, res) {
   }
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     const rating = await prisma.rating.findUnique({
-      where: { userID_gameID: { userID, gameID } },
+      where: { userID_gameID: { userID, gameID: game.id } },
     });
 
     if (!rating) {
@@ -349,12 +357,14 @@ async function updateReview(req, res) {
 
 async function getUserRating(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     //find the user's existing rating for the game
     const userRating = await prisma.rating.findUnique({
-      where: { userID_gameID: { userID, gameID } },
+      where: { userID_gameID: { userID, gameID: game.id } },
     });
 
     if (!userRating) {
@@ -370,13 +380,13 @@ async function getUserRating(req, res) {
 
 async function getUserReview(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
 
   try {
     //find the user's review for the specified game
     const userReview = await prisma.review.findUnique({
       where: {
-        userID_gameID: { userID, gameID },
+        userID_gameID: { userID, gameID: game.id },
       },
     });
 
@@ -393,13 +403,15 @@ async function getUserReview(req, res) {
 
 async function deleteReview(req, res) {
   const userID = req.user.id;
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     //check if the review exists
     const existingReview = await prisma.review.findUnique({
       where: {
-        userID_gameID: { userID, gameID },
+        userID_gameID: { userID, gameID: game.id },
       },
     });
 
@@ -416,7 +428,7 @@ async function deleteReview(req, res) {
       },
     });
 
-    await updateGameReviewCount(gameID);
+    await updateGameReviewCount(game.id);
 
     res.status(200).json({ message: "Review deleted successfully." });
   } catch (error) {
@@ -426,11 +438,13 @@ async function deleteReview(req, res) {
 }
 
 async function postGenreTag(req, res) {
-  const gameID = req.params.gameID;
+  const slug = req.params.slug;
   const genreName = req.body;
   const userID = req.user.id;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     // failsafe, make sure the genre exists
     const genre = await prisma.genre.findUnique({
       where: { genreName: genreName },
@@ -447,7 +461,7 @@ async function postGenreTag(req, res) {
     // failsafe, make sure the genre isnt picked yet
     const existingTag = await prisma.gameGenre.findUnique({
       where: {
-        gameID_genreID: { gameID, genreID },
+        gameID_genreID: { gameID: game.id, genreID },
       },
     });
 
@@ -460,7 +474,7 @@ async function postGenreTag(req, res) {
     //add the genre tag to the game
     await prisma.gameGenre.create({
       data: {
-        gameID: gameID,
+        gameID: game.id,
         genreID,
         upvoteCount: 1, //count this user's suggestion as an upvote
         totalVotes: 1,
@@ -471,7 +485,7 @@ async function postGenreTag(req, res) {
     await prisma.genreVote.create({
       data: {
         userID,
-        gameID: gameID,
+        gameID: game.id,
         genreID,
         voteValue: true,
       },
@@ -485,11 +499,13 @@ async function postGenreTag(req, res) {
 }
 
 async function handleGenreVote(req, res) {
-  const { gameID } = req.params;
+  const slug = req.params.slug;
   const { genreName, voteValue } = req.body; // true (upvote) or false (downvote)
   const userID = req.user.id;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: slug } });
+
     //get the genreID since i'm expecting to work this sectinon just by names
     const genre = await prisma.genre.findUnique({
       where: { name: genreName },
@@ -506,7 +522,7 @@ async function handleGenreVote(req, res) {
       where: {
         userID_gameID_genreID: {
           userID,
-          gameID: gameID,
+          gameID: game.id,
           genreID,
         },
       },
@@ -520,7 +536,7 @@ async function handleGenreVote(req, res) {
       await prisma.gameGenre.update({
         where: {
           gameID_genreID: {
-            gameID: gameID,
+            gameID: game.id,
             genreID,
           },
         },
@@ -541,7 +557,7 @@ async function handleGenreVote(req, res) {
         where: {
           userID_gameID_genreID: {
             userID,
-            gameID: gameID,
+            gameID: game.id,
             genreID,
           },
         },
@@ -554,7 +570,7 @@ async function handleGenreVote(req, res) {
       await prisma.genreVote.create({
         data: {
           userID,
-          gameID: gameID,
+          gameID: game.id,
           genreID,
           voteValue,
         },
@@ -564,7 +580,7 @@ async function handleGenreVote(req, res) {
       await prisma.gameGenre.update({
         where: {
           gameID_genreID: {
-            gameID: gameID,
+            gameID: game.id,
             genreID,
           },
         },
