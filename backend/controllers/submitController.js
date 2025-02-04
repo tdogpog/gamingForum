@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const fs = require("fs");
+const generateSlug = require("../util/generateSlug");
 
 const prisma = new PrismaClient();
 
@@ -47,7 +48,7 @@ async function getQueue(req, res) {
 }
 
 //posting a new game with false flag to db
-async function postSubmitForm(req, res) {
+async function newGameSubmitForm(req, res) {
   try {
     const { title, releaseDate, developer } = req.body;
 
@@ -61,7 +62,7 @@ async function postSubmitForm(req, res) {
     //rename and move the uploaded file to the desired location
     fs.renameSync(req.file.path, path.join("uploads", coverImagePath));
 
-    const post = await prisma.game.create({
+    const gameSubmission = await prisma.game.create({
       data: {
         title,
         releaseDate,
@@ -70,6 +71,14 @@ async function postSubmitForm(req, res) {
         approved: false,
       },
     });
+
+    const slug = generateSlug(title, gameSubmission.id);
+
+    await prisma.game.update({
+      where: { id: post.id },
+      data: { slug: slug },
+    });
+
     res
       .status(201)
       .json({ message: "Game submitted for admin approval", post });
@@ -85,17 +94,23 @@ async function postSubmitForm(req, res) {
 async function editGameInfo(req, res) {
   try {
     const userID = req.user.id; //userID fed in by the isUser middleware
-    const gameID = req.params.gameID;
+    const slug = req.params.slug;
     const { title, releaseDate, developer } = req.body;
 
-    if (!gameID) {
+    if (!slug) {
       return res.status(400).json({ error: "Game ID is required." });
     }
 
     const currentGame = await prisma.game.findUnique({
-      where: { id: gameID },
+      where: { slug: slug },
       select: { coverImage: true },
     });
+
+    if (!currentGame) {
+      return res
+        .status(404)
+        .json({ error: "Game not found for edit request." });
+    }
 
     let coverImagePath = currentGame.coverImage; //default to current cover image if not changing
 
@@ -115,7 +130,7 @@ async function editGameInfo(req, res) {
     //null and not null fields
     const editTicket = await prisma.gameEdit.create({
       data: {
-        gameID: gameID,
+        gameID: currentGame.id,
         title: title || null,
         releaseDate: releaseDate || null,
         coverImage: coverImagePath || null,
@@ -137,14 +152,22 @@ async function editGameInfo(req, res) {
 
 async function approveGame(req, res) {
   try {
-    const gameID = req.params.gameID;
+    const slug = req.params.slug;
 
-    const game = await prisma.game.update({ where: gameID, data: req.body });
+    const game = await prisma.game.update({
+      where: { slug: slug },
+      data: req.body,
+    });
+
+    res.status(200).json({
+      message: "Game approved successfully",
+      game,
+    });
   } catch (error) {
     console.error("Error approving game:", error.message);
-    res
-      .status(500)
-      .json({ error: "An error occurred while approving game for display" });
+    res.status(500).json({
+      error: "An error occurred while approving game for display",
+    });
   }
 }
 
@@ -170,11 +193,21 @@ async function approveGameEdit(req, res) {
       return res.status(404).json({ error: "Game not found" });
     }
 
+    //if there was an edit to the title,
+    //we need to generate a newSlug from the new title
+    //and the existing primary ID of the game we're editing
+    //this handles that
+    let newSlug = null;
+    if (gameEdit.title) {
+      newSlug = generateSlug(gameEdit.title, game.id);
+    }
+
     //fill out object with ticket updates
     // ?? is if left is null return right
     //this matches our edit ticketing process for nulling unchanged fields
     const updatedGame = {
       title: gameEdit.title ?? game.title,
+      slug: newSlug ?? game.slug,
       releaseDate: gameEdit.releaseDate ?? game.releaseDate,
       coverImage: gameEdit.coverImage ?? game.coverImage,
       developer: gameEdit.developer ?? game.developer,
@@ -245,7 +278,7 @@ async function deleteTicket(req, res) {
 
 module.exports = {
   getQueue,
-  postSubmitForm,
+  newGameSubmitForm,
   editGameInfo,
   approveGame,
   approveGameEdit,

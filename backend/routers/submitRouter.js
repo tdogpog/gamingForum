@@ -22,7 +22,7 @@ const upload = multer({
 
 const {
   getQueue,
-  postSubmitForm,
+  newGameSubmitForm,
   editGameInfo,
   approveGame,
   approveGameEdit,
@@ -35,17 +35,17 @@ const submitRouter = Router();
 submitRouter.get("/queue", isAdmin, getQueue); //fetches all waiting edits and and new game submissions
 
 //posts
-submitRouter.post("/", isUser, upload.single("coverImage"), postSubmitForm); //posting a new game ticket to the DB with false flag
+submitRouter.post("/", isUser, upload.single("coverImage"), newGameSubmitForm); //posting a new game ticket to the DB with false flag
 submitRouter.post(
-  "/game/:gameID",
+  "/game/:slug",
   isUser,
   upload.single("coverImage"),
   editGameInfo
 ); // ticket for updating a games informaiton
 
 //puts
-submitRouter.post("/queue/:gameID", isAdmin, approveGame); //approves a game submission
-submitRouter.post("/queue/:editID", isAdmin, approveGameEdit); //approves a game edit
+submitRouter.put("/queue/:slug", isAdmin, approveGame); //approves a game submission
+submitRouter.put("/queue/:editID", isAdmin, approveGameEdit); //approves a game edit
 
 //deletes
 submitRouter.get("/queue/:ticketID", isAdmin, deleteTicket);
