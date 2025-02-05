@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs"); // Import bcrypt
+const generateSlug = require("../util/generateSlug");
 require("dotenv").config();
 
 const prisma = new PrismaClient();
@@ -27,13 +28,9 @@ async function main() {
     },
   });
 
-  await prisma.rating.create({
-    data: {
-      score: 5,
-      userID: user.id,
-      gameID: game.id,
-    },
-  });
+  slug = generateSlug(game.title, game.id);
+
+  prisma.game.update({ where: { id: game.id }, data: { slug: slug } });
 
   console.log("Database seeded");
 }

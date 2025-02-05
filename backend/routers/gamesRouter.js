@@ -21,9 +21,9 @@ const gamesRouter = Router();
 //gets
 gamesRouter.get("/genres", getAllGenres); // show all genres in the database
 gamesRouter.get("/genres/:genreID", getGenreGames); // show all games related to this genre
-gamesRouter.get("/:slug/:gameID", getGame); //specific game and all its attributes
 gamesRouter.get("/:slug/rating", isUser, getUserRating); //get the logged in users rating if exist
 gamesRouter.get("/:slug/review", isUser, getUserReview); // get the logged in users review if exist
+gamesRouter.get("/:slug", getGame); //specific game and all its attributes
 
 //posts
 gamesRouter.post("/:slug/rating", isUser, postRating); //user can post rating

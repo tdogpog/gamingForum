@@ -80,10 +80,14 @@ model GameEdit {
 }
 
 model Genre {
-  id        Int          @id @default(autoincrement())
-  genreName      String @unique
-  games     GameGenre[]
-  votes     GenreVote[]
+  id           Int      @id @default(autoincrement())
+  genreName    String @unique
+  slug         String
+  parentGenre  Int?  
+  subgenres    Genre[]  @relation("Subgenres")
+  games        GameGenre[]
+  votes        GenreVote[]
+  parent       Genre?   @relation("Subgenres", fields: [parentGenre], references: [id])
 }
 
 model GameGenre {
@@ -94,8 +98,8 @@ model GameGenre {
   downvoteCount Int    @default(0)
   totalVotes   Int     @default(0)
 
-  game      Game   @relation(fields: [gameID], references: [id])
-  genre     Genre  @relation(fields: [genreID], references: [id])
+  game         Game   @relation(fields: [gameID], references: [id])
+  genre        Genre  @relation(fields: [genreID], references: [id])
 
   @@unique([gameID, genreID])
 }
