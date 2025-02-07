@@ -10,3 +10,5 @@ function generateSlug(title, id) {
 
   return baseSlug;
 }
+
+module.exports = generateSlug;

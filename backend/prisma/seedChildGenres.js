@@ -1,16 +1,20 @@
 const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcryptjs"); // Import bcrypt
 const generateSlug = require("../util/generateSlug");
 require("dotenv").config();
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const actionSubgenres = ["2D Fighting", "3D Fighting", "Martial Arts"];
+  const actionSubgenres = [
+    "Hack & Slash",
+    "Beat 'em up",
+    "Combat",
+    "Spectacle fighter",
+  ];
 
   // Find the parent genre
   const actionGenre = await prisma.genre.findUnique({
-    where: { genreName: "Fighting" },
+    where: { genreName: "Action" },
   });
 
   for (const subgenre of actionSubgenres) {
@@ -36,31 +40,8 @@ async function main() {
 
 main()
   .catch((e) => {
-    throw e;
+    console.error(e);
   })
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-//THESE ARE THE ONLY GENRE
-
-//Action
-//Platformer & Runner
-//Shooter
-//RPG
-//Simulation
-//Sandbox
-//Strategy
-//Adventure
-//Themes
-//Game Type
-//Rhythm
-//Card, Board, & Traditional Games
-//Puzzle
-//Sports
-//Roguelike
-//Racing
-//Fighting
-//Arcade
-//Descriptors
-//CHANGES STAGED

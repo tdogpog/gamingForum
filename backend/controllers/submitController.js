@@ -75,13 +75,13 @@ async function newGameSubmitForm(req, res) {
     const slug = generateSlug(title, gameSubmission.id);
 
     await prisma.game.update({
-      where: { id: post.id },
+      where: { id: gameSubmission.id },
       data: { slug: slug },
     });
 
     res
       .status(201)
-      .json({ message: "Game submitted for admin approval", post });
+      .json({ message: "Game submitted for admin approval", gameSubmission });
   } catch (error) {
     console.error("Error submitting game:", error.message);
     res.status(500).json({
