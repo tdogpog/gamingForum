@@ -41,10 +41,10 @@ export default function Genres({ backend }) {
       <ul>
         {genres.map((genre) => (
           <li key={genre.id}>
-            <Link to={`/games/genres/${genre.id}`}>
+            <Link to={`/games/genres/${genre.slug}`}>
               <h2>{genre.genreName}</h2>
             </Link>
-            <p>Potential synopsis of the genre?</p>
+            <p>{genre._count?.subgenres || ""}</p>
           </li>
         ))}
       </ul>

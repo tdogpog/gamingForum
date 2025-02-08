@@ -35,14 +35,14 @@ async function updateGameReviewCount(gameID) {
 
 async function getGame(req, res) {
   try {
-    const slug = req.params.slug;
+    const gameSlug = req.params.gameSlug;
 
-    if (!slug) {
+    if (!gameSlug) {
       return res.status(400).json({ error: "Invalid or missing game ID" });
     }
 
     const game = await prisma.game.findUnique({
-      where: { slug: slug },
+      where: { slug: gameSlug },
       select: {
         title: true,
         releaseDate: true,
@@ -112,9 +112,24 @@ async function getGame(req, res) {
   }
 }
 
-async function getAllGenres(req, res) {
+async function getAllParentGenres(req, res) {
   try {
-    const genres = await prisma.genre.findMany();
+    const genres = await prisma.genre.findMany({
+      where: {
+        parentGenre: null,
+        genreName: {
+          notIn: ["Game Type", "Descriptors", "Themes"],
+        },
+      },
+      orderBy: {
+        genreName: "asc",
+      },
+      include: {
+        _count: {
+          select: { subgenres: true }, // Count children (subgenres)
+        },
+      },
+    });
 
     if (!genres || genres.length === 0) {
       return res.status(404).json({ error: "Genres not found" });
@@ -129,29 +144,44 @@ async function getAllGenres(req, res) {
 
 async function getGenreGames(req, res) {
   try {
-    const genreName = req.params.genreName;
+    const genreSlug = req.params.genreSlug;
 
-    if (!genreName) {
+    if (!genreSlug) {
       return res.status(400).json({ error: "Invalid or missing genre ID" });
     }
 
-    //turn the name into an id from the params
+    //turn the slug into an id from the params
     //our gamegenres table is built on ID relations
     const genre = await prisma.genre.findUnique({
-      where: { genreName: genreName },
-      select: {
-        id: true,
+      where: { slug: genreSlug },
+      include: {
+        parent: {
+          select: { slug: true, genreName: true }, // Fetch only the slug and name of the parent
+        },
+        subgenres: true, // Fetch subgenres for sidebar navigation
       },
     });
 
+    if (!genre) {
+      return res.status(404).json({ error: "Genre not found" });
+    }
+
+    const genreIDArray = [genre.id, ...genre.subgenres.map((genr) => genr.id)];
+
     const genreGames = await prisma.game.findMany({
       where: {
-        gameGenres: {
-          some: { genreID: genre.id }, //the 'some' fetches games that contain this genre in their genres
+        genres: {
+          some: {
+            genreID: { in: genreIDArray },
+          },
         },
       },
       include: {
-        gameGenres: true, //genre relationships for sorting
+        genres: {
+          include: {
+            genre: true,
+          },
+        },
       },
     });
 
@@ -159,30 +189,7 @@ async function getGenreGames(req, res) {
       return res.status(404).json({ error: "No games found for this genre" });
     }
 
-    // for each game in genreGames:
-    // sort game.gameGenres by totalVotes descending
-    // if the first genre matches the requested genre:
-    //     keep only the first two genres
-    //     add this game to the result
-    // else:
-    //     exclude this game
-
-    const filteredGames = genreGames
-      .map((game) => {
-        //sort genres by total votes
-        game.gameGenres.sort((a, b) => b.totalVotes - a.totalVotes);
-
-        //check first genre is the one we query for
-        if (game.gameGenres[0].genreID === genre.genreID) {
-          const relevantGenres = game.gameGenres.slice(0, 2);
-          return { ...game, gameGenres: relevantGenres };
-        }
-
-        return null;
-      })
-      .filter(Boolean); //remove null entries aka where first genre was not genre.genreID
-
-    res.status(200).json(filteredGames);
+    res.status(200).json({ genre, genreGames });
   } catch (error) {
     console.error("Error fetching games by genre:", error.message); // Log the error
     res.status(500).json({ error: "Internal server error" }); // Handle server error
@@ -191,11 +198,11 @@ async function getGenreGames(req, res) {
 
 async function postRating(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
   const { score } = req.body;
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     //check if a rating already exists
     //use a composite key to enforce uniqueness
@@ -229,11 +236,11 @@ async function postRating(req, res) {
 
 async function updateRating(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
   const { score } = req.body;
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     //find existing rating
     const existingRating = await prisma.rating.findUnique({
@@ -263,7 +270,7 @@ async function updateRating(req, res) {
 
 async function createReview(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
   const { title, content } = req.body;
 
   if (!title || !content) {
@@ -273,7 +280,7 @@ async function createReview(req, res) {
   }
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     const ratingWithReview = await prisma.rating.findUnique({
       where: {
@@ -323,7 +330,7 @@ async function createReview(req, res) {
 
 async function updateReview(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
   const { title, content } = req.body;
 
   if (!title || !content) {
@@ -331,7 +338,7 @@ async function updateReview(req, res) {
   }
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     const rating = await prisma.rating.findUnique({
       where: { userID_gameID: { userID, gameID: game.id } },
@@ -357,10 +364,10 @@ async function updateReview(req, res) {
 
 async function getUserRating(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     //find the user's existing rating for the game
     const userRating = await prisma.rating.findUnique({
@@ -380,9 +387,11 @@ async function getUserRating(req, res) {
 
 async function getUserReview(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
 
   try {
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
+
     //find the user's review for the specified game
     const userReview = await prisma.review.findUnique({
       where: {
@@ -403,10 +412,10 @@ async function getUserReview(req, res) {
 
 async function deleteReview(req, res) {
   const userID = req.user.id;
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     //check if the review exists
     const existingReview = await prisma.review.findUnique({
@@ -438,12 +447,12 @@ async function deleteReview(req, res) {
 }
 
 async function postGenreTag(req, res) {
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
   const genreName = req.body;
   const userID = req.user.id;
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     // failsafe, make sure the genre exists
     const genre = await prisma.genre.findUnique({
@@ -499,12 +508,12 @@ async function postGenreTag(req, res) {
 }
 
 async function handleGenreVote(req, res) {
-  const slug = req.params.slug;
+  const gameSlug = req.params.gameSlug;
   const { genreName, voteValue } = req.body; // true (upvote) or false (downvote)
   const userID = req.user.id;
 
   try {
-    const game = await prisma.game.findUnique({ where: { slug: slug } });
+    const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
     //get the genreID since i'm expecting to work this sectinon just by names
     const genre = await prisma.genre.findUnique({
@@ -601,7 +610,7 @@ async function handleGenreVote(req, res) {
 
 module.exports = {
   getGame,
-  getAllGenres,
+  getAllParentGenres,
   getGenreGames,
   postRating,
   updateRating,

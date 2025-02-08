@@ -51,7 +51,7 @@ model Follow {
 model Game {
   id           Int          @id @default(autoincrement())
   title        String
-  slug         String? 
+  slug         String? @unique
   releaseDate  DateTime 
   coverImage   String
   developer    String
@@ -82,7 +82,7 @@ model GameEdit {
 model Genre {
   id           Int      @id @default(autoincrement())
   genreName    String @unique
-  slug         String?
+  slug         String? @unique
   parentGenre  Int?  
   subgenres    Genre[]  @relation("Subgenres")
   games        GameGenre[]

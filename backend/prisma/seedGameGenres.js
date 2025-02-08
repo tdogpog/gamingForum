@@ -12,7 +12,7 @@ async function main() {
       developer: "Action Dev Studios",
       avgRating: 4.2,
       approved: true,
-      genreIDs: [3, 4],
+      genreIDs: [422, 435],
     },
     {
       title: "Epic RPG Quest",
@@ -22,7 +22,7 @@ async function main() {
       developer: "Fantasy Studios",
       avgRating: 4.8,
       approved: true,
-      genreIDs: [37],
+      genreIDs: [425],
     },
   ];
 

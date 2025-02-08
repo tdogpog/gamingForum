@@ -11,7 +11,7 @@ import Signup from "./pages/Signup";
 import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
 import Genres from "./pages/Genres";
-// import GenreGames from "./pages/GenreGames";
+import GenreGames from "./pages/GenreGames";
 //import GameDetail from "./pages/GameDetail";
 
 const backend = "http://localhost:3000/";
@@ -63,17 +63,17 @@ const router = createBrowserRouter([
       </Layout>
     ),
   },
-  // {
-  //   path: "/games/genres/:genreID",
-  //   element: (
-  //     <Layout>
-  //       <GenreGames backend={backend} />
-  //     </Layout>
-  //   ),
-  // },
+  {
+    path: "/games/genres/:genreSlug",
+    element: (
+      <Layout>
+        <GenreGames backend={backend} />
+      </Layout>
+    ),
+  },
 
   // {
-  //   path: "/games/:gameID",
+  //   path: "/games/:gameSlug",
   //   element: (
   //     <Layout>
   //       <GameDetail backend={backend} />

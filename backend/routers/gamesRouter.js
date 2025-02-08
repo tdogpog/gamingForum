@@ -3,7 +3,7 @@ const { isUser } = require("../util/isUser");
 
 const {
   getGame,
-  getAllGenres,
+  getAllParentGenres,
   getGenreGames,
   postRating,
   updateRating,
@@ -19,24 +19,24 @@ const {
 const gamesRouter = Router();
 
 //gets
-gamesRouter.get("/genres", getAllGenres); // show all genres in the database
-gamesRouter.get("/genres/:genreID", getGenreGames); // show all games related to this genre
-gamesRouter.get("/:slug/rating", isUser, getUserRating); //get the logged in users rating if exist
-gamesRouter.get("/:slug/review", isUser, getUserReview); // get the logged in users review if exist
-gamesRouter.get("/:slug", getGame); //specific game and all its attributes
+gamesRouter.get("/genres", getAllParentGenres); // show all genres in the database
+gamesRouter.get("/genres/:genreSlug", getGenreGames); // show all games related to this genre
+gamesRouter.get("/:gameSlug/rating", isUser, getUserRating); //get the logged in users rating if exist
+gamesRouter.get("/:gameSlug/review", isUser, getUserReview); // get the logged in users review if exist
+gamesRouter.get("/:gameSlug", getGame); //specific game and all its attributes
 
 //posts
-gamesRouter.post("/:slug/rating", isUser, postRating); //user can post rating
-gamesRouter.post("/:slug/genretag", isUser, postGenreTag); //user can suggest a genre for a game
-gamesRouter.post("/:slug/genrevote", isUser, handleGenreVote); //user can vote yes or no on a genre tag
+gamesRouter.post("/:gameSlug/rating", isUser, postRating); //user can post rating
+gamesRouter.post("/:gameSlug/genretag", isUser, postGenreTag); //user can suggest a genre for a game
+gamesRouter.post("/:gameSlug/genrevote", isUser, handleGenreVote); //user can vote yes or no on a genre tag
 
 //puts
-gamesRouter.put("/:slug/rating", isUser, updateRating); //user can update rating
-gamesRouter.put("/:slug/review", isUser, createReview); //user can create review
-gamesRouter.put("/:slug/review/edit", isUser, updateReview); //user can update review
-gamesRouter.put("/:slug/genrevote", isUser, handleGenreVote); //user can change vote on genre tag
+gamesRouter.put("/:gameSlug/rating", isUser, updateRating); //user can update rating
+gamesRouter.put("/:gameSlug/review", isUser, createReview); //user can create review
+gamesRouter.put("/:gameSlug/review/edit", isUser, updateReview); //user can update review
+gamesRouter.put("/:gameSlug/genrevote", isUser, handleGenreVote); //user can change vote on genre tag
 
 //deletes
-gamesRouter.delete("/:slug/review/delete", isUser, deleteReview); // user can delete review
+gamesRouter.delete("/:gameSlug/review/delete", isUser, deleteReview); // user can delete review
 
 module.exports = gamesRouter;
