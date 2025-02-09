@@ -12,7 +12,7 @@ import UserProfile from "./pages/UserProfile";
 import Settings from "./pages/Settings";
 import Genres from "./pages/Genres";
 import GenreGames from "./pages/GenreGames";
-//import GameDetail from "./pages/GameDetail";
+import Game from "./pages/Game";
 
 const backend = "http://localhost:3000/";
 
@@ -72,14 +72,14 @@ const router = createBrowserRouter([
     ),
   },
 
-  // {
-  //   path: "/games/:gameSlug",
-  //   element: (
-  //     <Layout>
-  //       <GameDetail backend={backend} />
-  //     </Layout>
-  //   ),
-  // },
+  {
+    path: "/games/:gameSlug",
+    element: (
+      <Layout>
+        <Game backend={backend} />
+      </Layout>
+    ),
+  },
 
   // //user submit and edit tickets
   // {

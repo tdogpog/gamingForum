@@ -61,45 +61,49 @@ async function getGame(req, res) {
               },
             },
           },
+          orderBy: { createdAt: "desc" }, // Order by timestamp descending
         },
         reviews: {
           select: {
-            userID: true,
             title: true,
             content: true,
             createdAt: true,
             rating: {
               select: {
-                score: true, //rating score from the associated rating model
+                score: true,
               },
             },
             user: {
               select: {
-                username: true, //username from the user model
+                username: true,
               },
             },
           },
+          orderBy: { createdAt: "desc" }, // Chronological order for reviews
         },
         genres: {
-          orderBy: {
-            gameGenres: {
-              upvoteCount: "desc", //sort genres by their upvoteCount in desc
-            },
-          },
           select: {
-            id: true,
-            name: true,
-            gameGenres: {
+            genre: {
               select: {
-                upvoteCount: true,
-                downvoteCount: true,
-                totalVotes: true,
+                genreName: true,
               },
             },
+            upvoteCount: true,
+            downvoteCount: true,
+            totalVotes: true,
           },
         },
       },
     });
+
+    if (game) {
+      // Sort genres by upvote count manually
+      game.genres.sort((a, b) => b.upvoteCount - a.upvoteCount);
+    }
+
+    if (game) {
+      game.genres.sort((a, b) => b.upvoteCount - a.upvoteCount); // Sorting by upvotes
+    }
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -186,7 +190,7 @@ async function getGenreGames(req, res) {
     });
 
     if (!genreGames || genreGames.length === 0) {
-      return res.status(404).json({ error: "No games found for this genre" });
+      return res.status(200).json({ genre, genreGames: [] });
     }
 
     res.status(200).json({ genre, genreGames });

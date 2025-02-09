@@ -42,22 +42,32 @@ export default function Genres({ backend }) {
     <div className="chart-container">
       {genre ? (
         <>
-          <h1>{genre.genreName}</h1>
+          <ul>
+            {genre.parent && (
+              <div>
+                <Link to={`/games/genres/${genre.parent.slug}`}>
+                  <h2>{genre.parent.genreName}</h2>
+                </Link>
+              </div>
+            )}
+            <h2>{genre.genreName}</h2>
+            {/* Display the first two subgenres */}
+            {genre.subgenres.length > 0 && (
+              <div>
+                <ul>
+                  {genre.subgenres.map((sub) => (
+                    <li key={sub.id}>
+                      <Link to={`/games/genres/${sub.slug}`}>
+                        {sub.genreName}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </ul>
 
-          {/* Display the first two subgenres */}
-          {genre.subgenres.length > 0 && (
-            <div>
-              <ul>
-                {genre.subgenres.map((sub) => (
-                  <li key={sub.id}>
-                    <Link to={`/games/${sub.slug}`}>{sub.genreName}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <h5>Games in this Genre:</h5>
+          <h4>Games in this Genre:</h4>
           {genreGames.length > 0 ? (
             <ul>
               {genreGames.map((game) => (
@@ -86,7 +96,10 @@ export default function Genres({ backend }) {
               ))}
             </ul>
           ) : (
-            <p>No games available for this genre.</p>
+            <p>
+              No games available for this genre yet... contribute to our
+              database to make a first!
+            </p>
           )}
         </>
       ) : (

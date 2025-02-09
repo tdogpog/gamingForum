@@ -136,7 +136,7 @@ model Review {
   id         Int      @id @default(autoincrement())
   userID     Int
   gameID     Int
-  ratingID   Int @unique
+  ratingID   Int? @unique
   title      String
   content    String
   createdAt  DateTime @default(now())
@@ -144,7 +144,7 @@ model Review {
 
   user       User    @relation(fields: [userID], references: [id], onDelete: Cascade)
   game       Game    @relation(fields: [gameID], references: [id])
-  rating     Rating  @relation(fields: [ratingID], references: [id]) 
+  rating     Rating?  @relation(fields: [ratingID], references: [id]) 
   @@unique([userID, gameID])
 }
 
