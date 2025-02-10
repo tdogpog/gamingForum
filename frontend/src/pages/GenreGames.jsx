@@ -78,7 +78,7 @@ export default function Genres({ backend }) {
                   <p>
                     Release Date: {new Date(game.releaseDate).getFullYear()}
                   </p>
-                  <p>Average Rating: {game.avgRating || "Not rated yet"}</p>
+                  <p>Average Rating: {game.avgRating || "Not rated yet"}/5.0</p>
                   <p>Reviews: {game.reviewCount || 0}</p>
                   <p>Ratings: {game.ratingCount || 0}</p>
                   {game.genres.length > 0 && (

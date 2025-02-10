@@ -86,6 +86,7 @@ async function getGame(req, res) {
             genre: {
               select: {
                 genreName: true,
+                slug: true,
               },
             },
             upvoteCount: true,

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { useAuth } from "../authContext"; //custom hook
+import Rating from "../components/Rating";
 
 export default function Game({ backend }) {
   const { user } = useAuth();
@@ -40,6 +41,21 @@ export default function Game({ backend }) {
     fetchGame();
   }, [backend, gameSlug, user]);
 
+  const handleRatingSubmit = async (score) => {
+    try {
+      await axios.post(
+        `${backend}games/${gameSlug}/rating`,
+        { score },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      setUserRating(score);
+      alert("Rating submitted!");
+    } catch (err) {
+      console.error("Error submitting rating:", err);
+      alert("Failed to submit rating.");
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -51,6 +67,7 @@ export default function Game({ backend }) {
   if (!game) {
     return <p>Game not found</p>;
   }
+  console.log(game.genres);
 
   return (
     <div>
@@ -58,27 +75,26 @@ export default function Game({ backend }) {
       <img src={game.coverImage} alt={`${game.title} boxart`} />
       <p>Developer: {game.developer}</p>
       <p>Release Date: {new Date(game.releaseDate).toDateString()}</p>
-      <h2>Average Rating: {game.avgRating || "N/A"}</h2>
+      <h2>Average Rating: {game.avgRating || "N/A"}/5.0</h2>
       <div>
-        {/* {user ? (
-        <div>
-          <h3>Your Rating:</h3>
-          <Rating
-            name="user-rating"
-            value={userRating}
-            precision={0.5}
-            onChange={(event, newValue) => handleRatingSubmit(newValue)}
-          />
-        </div>
-      ) : (
-        <p>Log in to rate this game.</p>
-      )} */}
+        {user ? (
+          <div>
+            <Rating
+              userRating={userRating}
+              onSubmitRating={(newValue) => handleRatingSubmit(newValue)}
+            />
+          </div>
+        ) : (
+          <p>Log in to rate this game.</p>
+        )}
         <h3>Genres</h3>
         <ul>
           {game.genres.length > 0 ? (
             game.genres.map((genre, index) => (
               <li key={genre.id || `genre-${index}`}>
-                {genre.genre?.genreName || "Unknown Genre(error)"}
+                <Link to={`/games/genres/${genre.genre.slug}`}>
+                  {genre.genre?.genreName || "Unknown Genre(error)"}
+                </Link>
               </li>
             ))
           ) : (
