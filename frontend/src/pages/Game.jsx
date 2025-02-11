@@ -4,6 +4,8 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { useAuth } from "../authContext"; //custom hook
 import Rating from "../components/Rating";
+import ReviewForm from "../components/ReviewForm";
+import "../styles/game.css";
 
 export default function Game({ backend }) {
   const { user } = useAuth();
@@ -12,6 +14,7 @@ export default function Game({ backend }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRating, setUserRating] = useState(null);
+  const [userReview, setUserReview] = useState(null);
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -65,6 +68,54 @@ export default function Game({ backend }) {
     }
   };
 
+  const handleReviewSubmit = async (title, content) => {
+    const token = localStorage.getItem("token");
+    setError(null);
+
+    try {
+      if (!userReview) {
+        // Create new review
+        await axios.post(
+          `${backend}games/${gameSlug}/reviews`,
+          { title, content, userID: user.id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setGame((prev) => ({
+          ...prev,
+          reviews: [...prev.reviews, { title, content, user }],
+        }));
+      } else {
+        // Update existing review
+        await axios.put(
+          `${backend}games/${gameSlug}/reviews/${userReview.id}`,
+          { title, content },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      setUserReview({ title, content, user });
+    } catch (err) {
+      setError(err.message);
+      console.error("Error submitting review:", err);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(
+        `${backend}games/${gameSlug}/reviews/${userReview.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setUserReview(null); // Remove review from state
+    } catch (err) {
+      console.error("Error deleting review:", err);
+      alert("Failed to delete review.");
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -113,6 +164,14 @@ export default function Game({ backend }) {
       </div>
 
       <h3>Reviews:</h3>
+      <div>
+        <ReviewForm
+          userReview={userReview}
+          setUserReview={setUserReview}
+          handleDeleteReview={handleDeleteReview}
+          onSubmitReview={handleReviewSubmit}
+        />
+      </div>
       {game.reviews.length > 0 ? (
         game.reviews.map((review, index) => (
           <div key={index}>

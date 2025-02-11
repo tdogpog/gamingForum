@@ -1,0 +1,12 @@
+.reviewFormContainer {
+  display: none;
+}
+.reviewFormContainer.visible {
+  display: block;
+}
+
+.toggleButton {
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
