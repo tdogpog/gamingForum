@@ -42,14 +42,23 @@ export default function Game({ backend }) {
   }, [backend, gameSlug, user]);
 
   const handleRatingSubmit = async (score) => {
+    const token = localStorage.getItem("token");
     try {
-      await axios.post(
-        `${backend}games/${gameSlug}/rating`,
-        { score },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-      setUserRating(score);
-      alert("Rating submitted!");
+      if (userRating === null) {
+        await axios.post(
+          `${backend}games/${gameSlug}/rating`,
+          { score },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUserRating(score);
+      } else {
+        await axios.put(
+          `${backend}games/${gameSlug}/rating`,
+          { score },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUserRating(score);
+      }
     } catch (err) {
       console.error("Error submitting rating:", err);
       alert("Failed to submit rating.");
@@ -116,7 +125,6 @@ export default function Game({ backend }) {
       ) : (
         <p>
           No reviews yet... share your thoughts! We would love to hear them.
-          Leave a rating and create a review.
         </p>
       )}
     </div>

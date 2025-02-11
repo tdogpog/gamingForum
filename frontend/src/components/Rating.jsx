@@ -17,7 +17,6 @@ export default function RatingComponent({ userRating, onSubmitRating }) {
         precision={0.5}
         onChange={handleRatingChange}
       />
-      <p>{userRating}</p>
     </div>
   );
 }

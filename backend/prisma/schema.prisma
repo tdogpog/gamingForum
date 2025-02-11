@@ -122,7 +122,7 @@ model Rating {
   id        Int      @id @default(autoincrement())
   userID    Int
   gameID    Int
-  score     Int
+  score     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -137,7 +137,7 @@ model Review {
   userID     Int
   gameID     Int
   ratingID   Int? @unique
-  title      String
+  title      String?
   content    String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
