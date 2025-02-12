@@ -6,6 +6,7 @@ import { useAuth } from "../authContext"; //custom hook
 import Rating from "../components/Rating";
 import ReviewForm from "../components/ReviewForm";
 import "../styles/game.css";
+import { Rating as MuiRating } from "@mui/material";
 
 export default function Game({ backend }) {
   const { user } = useAuth();
@@ -16,7 +17,13 @@ export default function Game({ backend }) {
   const [userRating, setUserRating] = useState(null);
   const [userReview, setUserReview] = useState(null);
 
+  console.log("review", userReview);
+
   useEffect(() => {
+    //protection against undefined error
+    if (!user) {
+      return;
+    }
     const fetchGame = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -31,7 +38,17 @@ export default function Game({ backend }) {
               },
             }
           );
+
+          const reviewResponse = await axios.get(
+            `${backend}games/${gameSlug}/review`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
           setUserRating(ratingResponse.data?.score || null);
+          setUserReview(reviewResponse.data || null);
         }
       } catch (error) {
         setError("Error fetching game data.");
@@ -73,10 +90,10 @@ export default function Game({ backend }) {
     setError(null);
 
     try {
-      if (!userReview) {
+      if (userReview.review === null) {
         // Create new review
         await axios.post(
-          `${backend}games/${gameSlug}/reviews`,
+          `${backend}games/${gameSlug}/review`,
           { title, content, userID: user.id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -87,10 +104,18 @@ export default function Game({ backend }) {
       } else {
         // Update existing review
         await axios.put(
-          `${backend}games/${gameSlug}/reviews/${userReview.id}`,
+          `${backend}games/${gameSlug}/review`,
           { title, content },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        setGame((prev) => ({
+          ...prev,
+          reviews: prev.reviews.map((review) =>
+            review.user.username === user.username
+              ? { ...review, title, content }
+              : review
+          ),
+        }));
       }
 
       setUserReview({ title, content, user });
@@ -103,12 +128,9 @@ export default function Game({ backend }) {
   const handleDeleteReview = async () => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(
-        `${backend}games/${gameSlug}/reviews/${userReview.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await axios.delete(`${backend}games/${gameSlug}/review`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUserReview(null); // Remove review from state
     } catch (err) {
       console.error("Error deleting review:", err);
@@ -134,7 +156,11 @@ export default function Game({ backend }) {
       <h1>{game.title}</h1>
       <img src={game.coverImage} alt={`${game.title} boxart`} />
       <p>Developer: {game.developer}</p>
-      <p>Release Date: {new Date(game.releaseDate).toDateString()}</p>
+      {new Date(game.releaseDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })}{" "}
       <h2>Average Rating: {game.avgRating || "N/A"}/5.0</h2>
       <div>
         {user ? (
@@ -162,10 +188,10 @@ export default function Game({ backend }) {
           )}
         </ul>
       </div>
-
       <h3>Reviews:</h3>
       <div>
         <ReviewForm
+          user={user}
           userReview={userReview}
           setUserReview={setUserReview}
           handleDeleteReview={handleDeleteReview}
@@ -175,10 +201,26 @@ export default function Game({ backend }) {
       {game.reviews.length > 0 ? (
         game.reviews.map((review, index) => (
           <div key={index}>
-            <h4>{review.title}</h4>
-            <p>By: {review.user?.username || "Anonymous"}</p>
-            <p>Rating: {review.rating?.score || "N/A"}</p>
-            <p>{review.content}</p>
+            <div className="reviewHeader">
+              <p>{review.user.username || "error"}</p>
+              <p>
+                {new Date(review.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </p>{" "}
+              <MuiRating
+                name="user-rating"
+                value={review.rating?.score || "Unrated"}
+                precision={0.5}
+                readOnly
+              />
+            </div>
+            <div className="reviewContent">
+              <h4>{review.title}</h4>
+              <p>{review.content}</p>
+            </div>
           </div>
         ))
       ) : (

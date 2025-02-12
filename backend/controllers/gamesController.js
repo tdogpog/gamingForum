@@ -278,47 +278,35 @@ async function createReview(req, res) {
   const gameSlug = req.params.gameSlug;
   const { title, content } = req.body;
 
-  if (!title || !content) {
-    return res
-      .status(404)
-      .json({ message: "Title and content must be filled." });
+  if (!content) {
+    return res.status(404).json({ message: "Content must be filled." });
   }
 
   try {
     const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
-    const ratingWithReview = await prisma.rating.findUnique({
+    const existingReview = await prisma.review.findUnique({
       where: {
-        userID_gameID: {
-          userID,
-          gameID: game.id,
-        },
-      },
-      include: {
-        review: true, //review if it exists
+        userID_gameID: { userID, gameID: game.id },
       },
     });
 
-    //force a rating first
-    if (!ratingWithReview) {
-      return res.status(400).json({
-        message: "You must first rate the game before submitting a review.",
-      });
+    if (existingReview) {
+      return res
+        .status(400)
+        .json({ message: "You have already reviewed this game." });
     }
 
-    //stop a double submit
-    if (ratingWithReview.review) {
-      return res.status(400).json({
-        message: "You have already submitted a review for this game.",
-      });
-    }
+    const ratingCheck = await prisma.rating.findUnique({
+      where: { userID_gameID: { userID, gameID: game.id } },
+    });
 
-    //new review linked to the rating
+    //new review check
     const newReview = await prisma.review.create({
       data: {
         userID,
         gameID: game.id,
-        ratingID: ratingWithReview.id,
+        ratingID: ratingCheck.id || null,
         title,
         content,
       },
@@ -338,25 +326,15 @@ async function updateReview(req, res) {
   const gameSlug = req.params.gameSlug;
   const { title, content } = req.body;
 
-  if (!title || !content) {
-    return res.status(400).json({ message: "Title and content are required." });
+  if (!content) {
+    return res.status(400).json({ message: "Content are required." });
   }
 
   try {
     const game = await prisma.game.findUnique({ where: { slug: gameSlug } });
 
-    const rating = await prisma.rating.findUnique({
-      where: { userID_gameID: { userID, gameID: game.id } },
-    });
-
-    if (!rating) {
-      return res
-        .status(404)
-        .json({ message: "No rating found for this game." });
-    }
-
     const updatedReview = await prisma.review.update({
-      where: { ratingID: rating.id },
+      where: { userID_gameID: { userID, gameID: game.id } },
       data: { title, content },
     });
 
