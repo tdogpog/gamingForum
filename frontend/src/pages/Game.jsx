@@ -18,10 +18,6 @@ export default function Game({ backend }) {
   const [userReview, setUserReview] = useState(null);
 
   useEffect(() => {
-    //protection against undefined error
-    if (!user) {
-      return;
-    }
     const fetchGame = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -228,8 +224,6 @@ export default function Game({ backend }) {
     return <p>Game not found</p>;
   }
 
-  console.log("userreview main", userReview);
-
   return (
     <div>
       <h1>{game.title}</h1>
@@ -264,6 +258,12 @@ export default function Game({ backend }) {
             ))
           ) : (
             <p>No genres available yet... be the first to add one!</p>
+          )}
+          {/* conditional render to vote on genres */}
+          {user ? (
+            <Link to={`/games/genres/genretag`}>Vote on Relevant Genres</Link>
+          ) : (
+            ""
           )}
         </ul>
       </div>

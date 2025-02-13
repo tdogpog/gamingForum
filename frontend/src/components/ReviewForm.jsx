@@ -50,13 +50,15 @@ export default function ReviewForm({
     setIsEditing(false);
   };
 
-  console.log("userreview form", userReview);
-
   return (
     <div>
-      <button onClick={handleToggleForm} className="toggleButton">
-        Review
-      </button>
+      {user ? (
+        <button onClick={handleToggleForm} className="toggleButton">
+          Review
+        </button>
+      ) : (
+        "Log in to review this game."
+      )}
 
       {/* Show existing review if it exists and not editing */}
       {isFormVisible && !isEditing && userReview?.content && (

@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import Genres from "./pages/Genres";
 import GenreGames from "./pages/GenreGames";
 import Game from "./pages/Game";
+// import GenreVoting from "./pages/GenreVoting";
 
 const backend = "http://localhost:3000/";
 
@@ -56,6 +57,14 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: "/games/:gameSlug",
+    element: (
+      <Layout>
+        <Game backend={backend} />
+      </Layout>
+    ),
+  },
+  {
     path: "/games/genres",
     element: (
       <Layout>
@@ -63,6 +72,7 @@ const router = createBrowserRouter([
       </Layout>
     ),
   },
+
   {
     path: "/games/genres/:genreSlug",
     element: (
@@ -72,14 +82,14 @@ const router = createBrowserRouter([
     ),
   },
 
-  {
-    path: "/games/:gameSlug",
-    element: (
-      <Layout>
-        <Game backend={backend} />
-      </Layout>
-    ),
-  },
+  // {
+  //   path: "/games/:gameSlug/genrevote",
+  //   element: (
+  //     <Layout>
+  //       <GenreVoting backend={backend} />
+  //     </Layout>
+  //   ),
+  // },
 
   // //user submit and edit tickets
   // {

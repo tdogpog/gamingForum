@@ -230,6 +230,19 @@ async function postRating(req, res) {
       },
     });
 
+    //if the user has a review before they rated, tie this
+    //rating via foreign key
+    const existingReview = await prisma.review.findUnique({
+      where: { userID_gameID: { userID, gameID: game.id } },
+    });
+
+    if (existingReview) {
+      const updateReviewRatingID = await prisma.rating.update({
+        where: { id: existingReview.id },
+        data: { ratingID: newRating.id },
+      });
+    }
+
     await updateGameRatingStats(game.id);
 
     res.status(201).json(newRating);
