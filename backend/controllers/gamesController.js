@@ -310,6 +310,9 @@ async function createReview(req, res) {
         title,
         content,
       },
+      include: {
+        rating: true, //related rating data for state
+      },
     });
 
     await updateGameReviewCount(game.id);

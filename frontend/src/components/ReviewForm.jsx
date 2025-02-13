@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { Rating as MuiRating } from "@mui/material";
+
 export default function ReviewForm({
   user,
   userReview,
@@ -9,51 +11,73 @@ export default function ReviewForm({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); //editing state
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Update form state when userReview changes
+  useEffect(() => {
+    if (userReview && userReview.content) {
+      setTitle(userReview.title || "");
+      setContent(userReview.content || "");
+    }
+  }, [userReview]); // Runs when userReview updates
 
   const handleToggleForm = () => {
     setIsFormVisible(!isFormVisible);
-    if (userReview.review !== null) {
-      setIsEditing(true);
+    if (!userReview || !userReview.content) {
+      setIsEditing(true); // no review, open form for new entry
+    } else {
+      setIsEditing(false);
     }
   };
 
   const handleEditReview = () => {
-    setTitle(userReview.title || "");
-    setContent(userReview.content || "");
     setIsFormVisible(true);
-    setIsEditing(true); //form appears instead of the review
+    setIsEditing(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmitReview(title, content);
-    setIsFormVisible(true);
     setIsEditing(false);
   };
 
   const handleDelete = (e) => {
     e.preventDefault();
     handleDeleteReview();
+    setTitle("");
+    setContent("");
     setIsFormVisible(false);
     setIsEditing(false);
   };
+
+  console.log("userreview form", userReview);
 
   return (
     <div>
       <button onClick={handleToggleForm} className="toggleButton">
         Review
       </button>
-      {isFormVisible && !isEditing && userReview.review !== null && (
+
+      {/* Show existing review if it exists and not editing */}
+      {isFormVisible && !isEditing && userReview?.content && (
         <div>
           <h4>{user.username}</h4>
+          <p>{userReview.createdAt}</p>
+          <MuiRating
+            name="user-rating"
+            value={userReview.rating?.score || 0}
+            precision={0.5}
+            readOnly
+          />
           <h4>{userReview.title}</h4>
           <p>{userReview.content}</p>
           <button onClick={handleEditReview}>Edit Review</button>
           <button onClick={handleDelete}>Delete Review</button>
         </div>
       )}
-      {isFormVisible && (isEditing || !userReview.review) && (
+
+      {/* Show form if creating a new review or editing */}
+      {isFormVisible && (!userReview?.content || isEditing) && (
         <div className="reviewFormContainer visible">
           <form onSubmit={handleSubmit} className="newReviewForm">
             <div className="formGroup">
@@ -79,7 +103,7 @@ export default function ReviewForm({
               ></textarea>
             </div>
             <button type="submit" className="submitButton">
-              {userReview ? "Update Review" : "Submit Review"}
+              {userReview?.content ? "Update Review" : "Submit Review"}
             </button>
           </form>
         </div>
@@ -87,8 +111,9 @@ export default function ReviewForm({
     </div>
   );
 }
+
 ReviewForm.propTypes = {
-  user: PropTypes.object,
+  user: PropTypes.object.isRequired,
   userReview: PropTypes.object,
   handleDeleteReview: PropTypes.func.isRequired,
   onSubmitReview: PropTypes.func.isRequired,

@@ -17,8 +17,6 @@ export default function Game({ backend }) {
   const [userRating, setUserRating] = useState(null);
   const [userReview, setUserReview] = useState(null);
 
-  console.log("review", userReview);
-
   useEffect(() => {
     //protection against undefined error
     if (!user) {
@@ -48,7 +46,25 @@ export default function Game({ backend }) {
             }
           );
           setUserRating(ratingResponse.data?.score || null);
-          setUserReview(reviewResponse.data || null);
+          if (reviewResponse.data) {
+            setUserReview({
+              title: reviewResponse.data.title || "",
+              content: reviewResponse.data.content || "",
+              createdAt: new Date(
+                reviewResponse.data.createdAt
+              ).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              }),
+              rating: {
+                score: ratingResponse.data?.score || null,
+              },
+              user: {
+                username: user.username,
+              },
+            });
+          }
         }
       } catch (error) {
         setError("Error fetching game data.");
@@ -90,35 +106,80 @@ export default function Game({ backend }) {
     setError(null);
 
     try {
-      if (userReview.review === null) {
+      let newReview;
+      if (userReview.content === "") {
         // Create new review
-        await axios.post(
+        const response = await axios.post(
           `${backend}games/${gameSlug}/review`,
           { title, content, userID: user.id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        newReview = response.data; // Get full review data from backend response
         setGame((prev) => ({
           ...prev,
-          reviews: [...prev.reviews, { title, content, user }],
+          reviews: [
+            ...prev.reviews,
+            {
+              title,
+              content,
+              user: {
+                username: user.username,
+              },
+              createdAt: new Date(newReview.createdAt).toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                }
+              ),
+              rating: { score: userRating },
+            },
+          ],
         }));
       } else {
         // Update existing review
-        await axios.put(
+        const response = await axios.put(
           `${backend}games/${gameSlug}/review`,
           { title, content },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        newReview = response.data; // Get full review data from backend response
         setGame((prev) => ({
           ...prev,
           reviews: prev.reviews.map((review) =>
             review.user.username === user.username
-              ? { ...review, title, content }
+              ? {
+                  ...review,
+                  title,
+                  content,
+                  createdAt: new Date(newReview.createdAt).toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    }
+                  ),
+                }
               : review
           ),
         }));
       }
 
-      setUserReview({ title, content, user });
+      setUserReview({
+        title,
+        content,
+        createdAt: new Date(newReview.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        rating: { score: userRating },
+        user: {
+          username: user.username,
+        },
+      });
     } catch (err) {
       setError(err.message);
       console.error("Error submitting review:", err);
@@ -131,7 +192,24 @@ export default function Game({ backend }) {
       await axios.delete(`${backend}games/${gameSlug}/review`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUserReview(null); // Remove review from state
+      setGame((prev) => ({
+        ...prev,
+        reviews: prev.reviews.filter(
+          (review) => review.user.username !== user.username
+        ),
+      }));
+      //reset the obj structure
+      setUserReview({
+        title: "",
+        content: "",
+        createdAt: null,
+        rating: {
+          score: userRating, // Keep the user's rating if they have one
+        },
+        user: {
+          username: user.username,
+        },
+      });
     } catch (err) {
       console.error("Error deleting review:", err);
       alert("Failed to delete review.");
@@ -149,7 +227,8 @@ export default function Game({ backend }) {
   if (!game) {
     return <p>Game not found</p>;
   }
-  console.log(game.genres);
+
+  console.log("userreview main", userReview);
 
   return (
     <div>
