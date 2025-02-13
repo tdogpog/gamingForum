@@ -12,6 +12,7 @@ const {
   getUserRating,
   getUserReview,
   deleteReview,
+  getGenreTags,
   postGenreTag,
   handleGenreVote,
 } = require("../controllers/gamesController");
@@ -23,6 +24,7 @@ gamesRouter.get("/genres", getAllParentGenres); // show all genres in the databa
 gamesRouter.get("/genres/:genreSlug", getGenreGames); // show all games related to this genre
 gamesRouter.get("/:gameSlug/rating", isUser, getUserRating); //get the logged in users rating if exist
 gamesRouter.get("/:gameSlug/review", isUser, getUserReview); // get the logged in users review if exist
+gamesRouter.get("/:gameSlug/genrevote", getGenreTags); //specific game and all its attributes
 gamesRouter.get("/:gameSlug", getGame); //specific game and all its attributes
 
 //posts

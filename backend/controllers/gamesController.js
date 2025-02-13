@@ -97,17 +97,12 @@ async function getGame(req, res) {
       },
     });
 
-    if (game) {
-      // Sort genres by upvote count manually
-      game.genres.sort((a, b) => b.upvoteCount - a.upvoteCount);
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
     }
 
     if (game) {
       game.genres.sort((a, b) => b.upvoteCount - a.upvoteCount); // Sorting by upvotes
-    }
-
-    if (!game) {
-      return res.status(404).json({ error: "Game not found" });
     }
 
     res.status(200).json(game);
@@ -445,6 +440,60 @@ async function deleteReview(req, res) {
   }
 }
 
+async function getGenreTags(req, res) {
+  try {
+    const gameSlug = req.params.gameSlug;
+
+    if (!gameSlug) {
+      return res.status(400).json({ error: "Invalid or missing game ID" });
+    }
+
+    //parallel queries test, supposedly runs faster
+    const [game, genres] = await Promise.all([
+      prisma.game.findUnique({
+        where: { slug: gameSlug },
+        select: {
+          title: true,
+          coverImage: true,
+          developer: true,
+          genres: {
+            select: {
+              genre: {
+                select: {
+                  genreName: true,
+                  slug: true,
+                },
+              },
+              upvoteCount: true,
+              downvoteCount: true,
+              totalVotes: true,
+            },
+          },
+        },
+      }),
+      prisma.genre.findMany({
+        select: {
+          genreName: true,
+          slug: true,
+        },
+      }),
+    ]);
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    if (game) {
+      game.genres.sort((a, b) => b.upvoteCount - a.upvoteCount); // Sorting by upvotes
+    }
+
+    res.status(200).json({ game, genres });
+  } catch (error) {
+    console.error("Error fetching genre voting:", error.message); // Log the error
+    res.status(500).json({ error: "Internal server error" }); // Handle server error
+  }
+}
+
 async function postGenreTag(req, res) {
   const gameSlug = req.params.gameSlug;
   const genreName = req.body;
@@ -618,6 +667,7 @@ module.exports = {
   getUserRating,
   getUserReview,
   deleteReview,
+  getGenreTags,
   postGenreTag,
   handleGenreVote,
 };
