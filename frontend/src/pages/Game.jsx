@@ -266,6 +266,7 @@ export default function Game({ backend }) {
             "Log in to vote on genres"
           )}
         </ul>
+        <h4>Secondary Descriptors</h4>
       </div>
       <h3>Reviews:</h3>
       <div>

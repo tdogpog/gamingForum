@@ -19,6 +19,7 @@ import Genres from "./pages/Genres";
 import GenreGames from "./pages/GenreGames";
 import Game from "./pages/Game";
 // import GenreVoting from "./pages/GenreVoting";
+// import DescriptorVoting from "./pages/DescriptorVoting";
 
 const backend = "http://localhost:3000/";
 
@@ -101,11 +102,22 @@ const router = createBrowserRouter([
   // {
   //   path: "/games/:gameSlug/genrevote",
   //   element: (
-  // <ProtectedRoute>
-  //     <Layout>
-  //       <GenreVoting backend={backend} />
-  //     </Layout>
-  //</ProtectedRoute>
+  //     <ProtectedRoute>
+  //       <Layout>
+  //         <GenreVoting backend={backend} />
+  //       </Layout>
+  //     </ProtectedRoute>
+  //   ),
+  // },
+
+  // {
+  //   path: "/games/:gameSlug/genrevote",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Layout>
+  //         <DescriptorVoting backend={backend} />
+  //       </Layout>
+  //     </ProtectedRoute>
   //   ),
   // },
 

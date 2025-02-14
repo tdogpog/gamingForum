@@ -8,8 +8,7 @@ export default function Game({ backend }) {
   const { user } = useAuth();
   const { gameSlug } = useParams();
   const [gameDetails, setgameDetails] = useState(null);
-  const [genres, setGenres] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(""); // Search input state
+  const [descriptors, setDescriptors] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,12 +41,13 @@ export default function Game({ backend }) {
             totalVotes: g.totalVotes,
           })),
         });
-        //grab all genres
-        setGenres(
+
+        //grab only theme and descriptor and their children
+        setDescriptors(
           //reduce since we're flattening the structure, not 1:1 like map
           genreVotingReponse.data.genres.reduce((acc, g) => {
             // Add the parent genre
-            if (g.genreName === "Themes" || g.genreName === "Descriptors") {
+            if (g.genreName !== "Themes" && g.genreName !== "Descriptors") {
               return acc;
             }
 
@@ -73,14 +73,6 @@ export default function Game({ backend }) {
 
     fetchGame();
   }, [backend, gameSlug, user]);
-
-  const filteredGenres = genres
-    ? genres
-        .filter((g) =>
-          g.genreName.toLowerCase().startsWith(searchQuery.toLowerCase())
-        )
-        .sort((a, b) => a.genreName.localeCompare(b.genreName))
-    : [];
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -115,35 +107,14 @@ export default function Game({ backend }) {
           )}
         </ul>
       </div>
+
       <div>
-        <h2>Primary Genres</h2>
+        <h2>Secondary Descriptors</h2>
         <p>
-          This category for voting represents characteristics that define the
-          game. Is it an action game? Is it a fighting game? PvP? Think big
-          picture here.
+          This category for voting represents characteristics that can apply to
+          many different games across genres. Themes, and descriptors belong
+          here!
         </p>
-        <input
-          type="text"
-          placeholder="Search genres..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <div>
-          <h3>Genres</h3>
-          <ul>
-            {filteredGenres.length > 0 ? (
-              filteredGenres.map((genre, index) => (
-                <li key={genre.slug || `genre-${index}`}>
-                  <Link to={`/games/genres/${genre.slug}`}>
-                    {genre.genreName || "Unknown Genre(error)"}
-                  </Link>
-                </li>
-              ))
-            ) : (
-              <p>No genres match your search.</p>
-            )}
-          </ul>
-        </div>
       </div>
     </div>
   );
