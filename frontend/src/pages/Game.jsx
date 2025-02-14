@@ -250,7 +250,7 @@ export default function Game({ backend }) {
         <ul>
           {game.genres.length > 0 ? (
             game.genres.map((genre, index) => (
-              <li key={genre.id || `genre-${index}`}>
+              <li key={genre.slug || `genre-${index}`}>
                 <Link to={`/games/genres/${genre.genre.slug}`}>
                   {genre.genre?.genreName || "Unknown Genre(error)"}
                 </Link>
@@ -263,7 +263,7 @@ export default function Game({ backend }) {
           {user ? (
             <Link to={`/games/genres/genretag`}>Vote on Relevant Genres</Link>
           ) : (
-            ""
+            "Log in to vote on genres"
           )}
         </ul>
       </div>

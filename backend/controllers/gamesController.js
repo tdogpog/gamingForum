@@ -475,6 +475,18 @@ async function getGenreTags(req, res) {
         select: {
           genreName: true,
           slug: true,
+          subgenres: {
+            select: {
+              genreName: true,
+              slug: true,
+            },
+            orderBy: {
+              genreName: "asc",
+            },
+          },
+        },
+        orderBy: {
+          genreName: "asc", //genres alphabetically by genreName
         },
       }),
     ]);

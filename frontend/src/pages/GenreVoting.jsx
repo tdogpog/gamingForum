@@ -7,7 +7,9 @@ import { useAuth } from "../authContext"; //custom hook
 export default function Game({ backend }) {
   const { user } = useAuth();
   const { gameSlug } = useParams();
-  const [game, setGame] = useState(null);
+  const [gameDetails, setgameDetails] = useState(null);
+  const [genres, setGenres] = useState(null);
+  const [descriptors, setDescriptors] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -19,18 +21,54 @@ export default function Game({ backend }) {
     const fetchGame = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`${backend}games/${gameSlug}`);
-        setGame(response.data);
-        if (user) {
-          const ratingResponse = await axios.get(
-            `${backend}games/${gameSlug}/rating`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+
+        const genreVotingReponse = await axios.get(
+          `${backend}games/${gameSlug}/genrevote`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setgameDetails({
+          title: genreVotingReponse.data.game.title || "",
+          coverImage: genreVotingReponse.data.game.coverImage || "",
+          createdAt: genreVotingReponse.data.game.developer || "",
+          genres: genreVotingReponse.data.game.genres.map((g) => ({
+            genreName: g.genreName,
+            slug: g.genre.slug,
+            upvoteCount: g.upvoteCount,
+            downvoteCount: g.downvoteCount,
+            totalVotes: g.totalVotes,
+          })),
+        });
+        setGenres(
+          //reduce since we're flattening the structure, not 1:1 like map
+          genreVotingReponse.data.genres.reduce((acc, g) => {
+            // Add the parent genre
+            if (g.genreName !== "Themes" || g.genreName !== "Descriptors") {
+              return acc;
             }
-          );
-        }
+
+            acc.push({ genreName: g.genreName, slug: g.slug });
+
+            // Add all subgenres, if any
+            if (g.subgenres.length > 0) {
+              g.subgenres.forEach((sub) => {
+                acc.push({ genreName: sub.genreName, slug: sub.slug });
+              });
+            }
+
+            return acc;
+          }, [])
+        );
+
+        setDescriptors(
+          genreVotingReponse.data.genres.map((g) => ({
+            genreName: g.genre.genreName,
+            slug: g.genre.slug,
+          }))
+        );
       } catch (error) {
         setError("Error fetching genre voting data.");
         console.error("Error fetching genre voting data:", error);
@@ -50,36 +88,46 @@ export default function Game({ backend }) {
     return <div>{error}</div>;
   }
 
-  if (!game) {
+  if (!gameDetails) {
     return <p>Game not found</p>;
   }
 
   return (
     <div>
-      <h1>{game.title}</h1>
-      <img src={game.coverImage} alt={`${game.title} boxart`} />
-      <p>Developer: {game.developer}</p>
-      {new Date(game.releaseDate).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })}{" "}
+      <h1>{gameDetails.title}</h1>
+      <img src={gameDetails.coverImage} alt={`${gameDetails.title} boxart`} />
+      <p>Developer: {gameDetails.developer}</p>
       <div>
         <h3>Genres</h3>
         <ul>
-          {game.genres.length > 0 ? (
-            game.genres.map((genre, index) => (
-              <li key={genre.id || `genre-${index}`}>
-                <Link to={`/games/genres/${genre.genre.slug}`}>
-                  {genre.genre?.genreName || "Unknown Genre(error)"}
+          {gameDetails.genres.length > 0 ? (
+            gameDetails.genres.map((genre, index) => (
+              <li key={genre.slug || `genre-${index}`}>
+                <Link to={`/games/genres/${genre.slug}`}>
+                  {genre.genreName || "Unknown Genre(error)"}
                 </Link>
               </li>
             ))
           ) : (
             <p>No genres available yet... be the first to add one!</p>
           )}
-          <Link to={`/games/genres/genretag`}>Vote on Relevant Genres</Link>
         </ul>
+      </div>
+      <div>
+        <h2>Primary Genres</h2>
+        <p>
+          This category for voting represents characteristics that define the
+          game. Is it an action game? Is it a fighting game? PvP? Think big
+          picture here.
+        </p>
+      </div>
+      <div>
+        <h2>Secondary Descriptors</h2>
+        <p>
+          This category for voting represents characteristics that can apply to
+          many different games across genres. Themes, and descriptors belong
+          here!
+        </p>
       </div>
     </div>
   );

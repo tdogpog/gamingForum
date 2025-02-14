@@ -1,6 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  Navigate,
+} from "react-router-dom";
+import PropTypes from "prop-types";
 import "./index.css";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./authContext";
@@ -16,6 +21,17 @@ import Game from "./pages/Game";
 // import GenreVoting from "./pages/GenreVoting";
 
 const backend = "http://localhost:3000/";
+
+//route protector for visting USER only pages (GenreVoting)
+// const ProtectedRoute = ({ children }) => {
+//   const isAuthenticated = !!localStorage.getItem("token");
+
+//   if (!isAuthenticated) {
+//     return <Navigate to="/signup" replace />;
+//   }
+
+//   return children;
+// };
 
 const router = createBrowserRouter([
   //landing page that should explain the premise of the website
@@ -85,9 +101,11 @@ const router = createBrowserRouter([
   // {
   //   path: "/games/:gameSlug/genrevote",
   //   element: (
+  // <ProtectedRoute>
   //     <Layout>
   //       <GenreVoting backend={backend} />
   //     </Layout>
+  //</ProtectedRoute>
   //   ),
   // },
 
@@ -140,3 +158,7 @@ createRoot(document.getElementById("root")).render(
     </AuthProvider>
   </StrictMode>
 );
+
+// ProtectedRoute.propTypes = {
+//   children: PropTypes.node.isRequired, // Ensures children is a React node and required
+// };
