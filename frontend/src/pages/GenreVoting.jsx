@@ -35,7 +35,7 @@ export default function Game({ backend }) {
           coverImage: genreVotingReponse.data.game.coverImage || "",
           createdAt: genreVotingReponse.data.game.developer || "",
           genres: genreVotingReponse.data.game.genres.map((g) => ({
-            genreName: g.genreName,
+            genreName: g.genre.genreName,
             slug: g.genre.slug,
             upvoteCount: g.upvoteCount,
             downvoteCount: g.downvoteCount,
@@ -45,23 +45,7 @@ export default function Game({ backend }) {
         //grab all genres
         setGenres(
           //reduce since we're flattening the structure, not 1:1 like map
-          genreVotingReponse.data.genres.reduce((acc, g) => {
-            // Add the parent genre
-            if (g.genreName === "Themes" || g.genreName === "Descriptors") {
-              return acc;
-            }
-
-            acc.push({ genreName: g.genreName, slug: g.slug });
-
-            // Add all subgenres, if any
-            if (g.subgenres.length > 0) {
-              g.subgenres.forEach((sub) => {
-                acc.push({ genreName: sub.genreName, slug: sub.slug });
-              });
-            }
-
-            return acc;
-          }, [])
+          genreVotingReponse.genres
         );
       } catch (error) {
         setError("Error fetching genre voting data.");
@@ -93,6 +77,12 @@ export default function Game({ backend }) {
   if (!gameDetails) {
     return <p>Game not found</p>;
   }
+
+  console.log(genres);
+
+  console.log(gameDetails);
+
+  console.log(filteredGenres);
 
   return (
     <div>

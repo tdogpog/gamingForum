@@ -14,7 +14,6 @@ export default function Genres({ backend }) {
     // Fetch genre and its games based on genreSlug
     const fetchGenreGames = async () => {
       try {
-        console.log("Requesting URL:", `${backend}games/genres/${genreSlug}`);
         const response = await axios.get(`${backend}games/genres/${genreSlug}`);
         console.log(response);
         setGenre(response.data.genre); // Set genre data

@@ -18,21 +18,21 @@ import Settings from "./pages/Settings";
 import Genres from "./pages/Genres";
 import GenreGames from "./pages/GenreGames";
 import Game from "./pages/Game";
-// import GenreVoting from "./pages/GenreVoting";
+import GenreVoting from "./pages/GenreVoting";
 // import DescriptorVoting from "./pages/DescriptorVoting";
 
 const backend = "http://localhost:3000/";
 
-//route protector for visting USER only pages (GenreVoting)
-// const ProtectedRoute = ({ children }) => {
-//   const isAuthenticated = !!localStorage.getItem("token");
+// route protector for visting USER only pages (GenreVoting)
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem("token");
 
-//   if (!isAuthenticated) {
-//     return <Navigate to="/signup" replace />;
-//   }
+  if (!isAuthenticated) {
+    return <Navigate to="/signup" replace />;
+  }
 
-//   return children;
-// };
+  return children;
+};
 
 const router = createBrowserRouter([
   //landing page that should explain the premise of the website
@@ -99,16 +99,16 @@ const router = createBrowserRouter([
     ),
   },
 
-  // {
-  //   path: "/games/:gameSlug/genrevote",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Layout>
-  //         <GenreVoting backend={backend} />
-  //       </Layout>
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/games/:gameSlug/genrevote",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <GenreVoting backend={backend} />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
 
   // {
   //   path: "/games/:gameSlug/genrevote",
@@ -171,6 +171,6 @@ createRoot(document.getElementById("root")).render(
   </StrictMode>
 );
 
-// ProtectedRoute.propTypes = {
-//   children: PropTypes.node.isRequired, // Ensures children is a React node and required
-// };
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired, // Ensures children is a React node and required
+};

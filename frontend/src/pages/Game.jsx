@@ -261,7 +261,9 @@ export default function Game({ backend }) {
           )}
           {/* conditional render to vote on genres */}
           {user ? (
-            <Link to={`/games/genres/genretag`}>Vote on Relevant Genres</Link>
+            <Link to={`/games/${gameSlug}/genrevote`}>
+              Vote on Relevant Genres
+            </Link>
           ) : (
             "Log in to vote on genres"
           )}

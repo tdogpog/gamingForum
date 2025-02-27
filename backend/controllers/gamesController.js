@@ -472,10 +472,26 @@ async function getGenreTags(req, res) {
         },
       }),
       prisma.genre.findMany({
+        where: {
+          NOT: {
+            OR: [
+              { genreName: { in: ["Themes", "Descriptors"] } }, //exclude hemes and Descriptors
+              { parent: { genreName: { in: ["Themes", "Descriptors"] } } }, //exclude Themes/Descriptors as parent
+            ],
+          },
+        },
         select: {
           genreName: true,
           slug: true,
           subgenres: {
+            where: {
+              NOT: {
+                OR: [
+                  { genreName: { in: ["Themes", "Descriptors"] } }, //exclude subgenres that are Themes/Descriptors
+                  { parent: { genreName: { in: ["Themes", "Descriptors"] } } }, //exclude subgenres whose parent is Themes/Descriptors
+                ],
+              },
+            },
             select: {
               genreName: true,
               slug: true,
@@ -486,7 +502,7 @@ async function getGenreTags(req, res) {
           },
         },
         orderBy: {
-          genreName: "asc", //genres alphabetically by genreName
+          genreName: "asc", // Order genres alphabetically
         },
       }),
     ]);
